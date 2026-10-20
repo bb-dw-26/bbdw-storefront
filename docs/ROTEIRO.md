@@ -66,4 +66,4 @@ CAT-001 só pode substituir o cenário principal se essa alternativa tiver sido 
 
 Registrar os links e resultados, preservar as revisões e encerrar todos os processos iniciados para a tarefa. Para outro ensaio, criar uma nova tentativa a partir do commit defeituoso, mantendo os PRs anteriores.
 
-Este roteiro é uma especificação: aplicação, instrumentação e workflows ainda serão implementados.
+O scaffold saudável já existe. O defeito isolado CHK-001, a instrumentação Sentry e o workflow do agente ainda serão implementados antes do ensaio.

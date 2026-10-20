@@ -6,7 +6,7 @@ Permitir selecionar cliente, navegar pelo catálogo, montar carrinho, escolher e
 
 **Tecnologia prevista:** React e TypeScript; ferramenta de build a definir.
 
-**Estado atual:** especificações iniciais. A aplicação, os defeitos executáveis, a integração Sentry e os workflows de CI/CD e reparo ainda serão implementados.
+**Estado atual:** scaffold funcional e saudável, com testes, Dockerfile e CI próprio. Os defeitos intencionais, Sentry, workflow do agente e deploy para hospedagem ainda serão implementados. A branch `main` não contém CHK-001; o defeito será introduzido em uma revisão isolada.
 
 ## Escopo da apresentação de 50 minutos
 
@@ -21,6 +21,27 @@ Manter quatro aplicações pequenas, dados fictícios em memória, HTTP/JSON e C
 **Papel deste repositório:** Interface saudável em uma única página: cliente, produto, quantidade, modalidade, envio e resultado. Abrir com customer-pickup, duas unidades de product-standard e pickup pré-selecionados; a primeira tentativa de finalizar revela CHK-001. Não introduzir falhas de renderização na apresentação.
 
 [Roteiro completo e contingência](https://github.com/bbdw-gh-action/bbw-storefront/blob/main/docs/ROTEIRO.md).
+
+## Executar localmente
+
+Pré-requisito: Node.js 24 e npm. Instale as dependências e inicie o modo de desenvolvimento:
+
+```sh
+npm ci
+npm run dev
+```
+
+Porta padrão: **3000**. Os valores locais já funcionam por padrão. Para personalizar, copie `.env.example` para `.env` e ajuste as URLs/porta.
+
+```sh
+npm run check
+```
+
+Antes do primeiro teste de navegador, execute `npx playwright install chromium`. O teste inicia seu próprio Vite e o encerra ao finalizar; mantenha a porta 3000 livre.
+
+Encerre o processo com **Ctrl+C** ao terminar. Cada aplicação tem seu próprio lockfile ou módulo Go, testes e workflow em `.github/workflows/ci.yml`. O CI também constrói a imagem; a publicação e o deploy serão configurados quando a hospedagem for escolhida.
+
+Para iniciar as quatro aplicações juntas, consulte [execução integrada](https://github.com/bbdw-gh-action/bbw-storefront/blob/main/docs/EXECUCAO.md).
 
 ## Documentação
 

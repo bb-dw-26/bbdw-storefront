@@ -20,7 +20,7 @@ Permitir selecionar cliente, navegar pelo catálogo, montar carrinho, escolher e
 
 É dona da apresentação e do estado local do carrinho. O checkout calcula os totais finais. Também abriga a composição local, o roteiro e o registro de versões de cada demonstração.
 
-Tecnologia: React e TypeScript; ferramenta de build a definir. Porta local proposta: `3000`. O armazenamento inicial, quando necessário, é em memória, recriado a partir de fixtures em cada inicialização. Persistência durável fica fora desta primeira entrega.
+Tecnologia: React e TypeScript com Vite. Porta local proposta: `3000`. Clientes e produtos vêm de fixtures em memória. A criação do pedido retorna a confirmação sem persistência ou histórico nesta versão. Persistência durável fica fora desta primeira entrega.
 
 ## Interface e regras de negócio
 
@@ -36,7 +36,7 @@ Consumir os contratos dos três backends por HTTP/JSON, com URLs configuráveis.
 
 Recursos visuais de demonstração são locais. O caminho `/demo-assets/caneca.svg` do catálogo é servido pela interface. Um produto sem miniatura usa placeholder acessível. A interface não substitui as validações do servidor.
 
-As fixtures em `specs/fixtures.json` são dados de entrada para implementação e testes, não endpoints já disponíveis.
+O scaffold implementa os endpoints e fluxos obrigatórios. Users e catalog carregam as fixtures versionadas; checkout e interface usam os contratos HTTP. Os endpoints marcados como complementares permanecem fora da implementação.
 
 ## Contratos comuns
 
@@ -62,7 +62,7 @@ Se CAT-001 for preparado como reserva, instrumentar a recuperação do panic HTT
 
 **CD previsto:** Artefato próprio da interface, URLs públicas configuráveis, release e rollback próprios. Upload de source maps ao Sentry fica para a instrumentação opcional da interface. A composição local não substitui os pipelines dos serviços.
 
-O destino de hospedagem será escolhido posteriormente. O workflow de reparo do checkout recebe o incidente CHK-001 e abre um PR no checkout. Workflows equivalentes nos outros repositórios ficam para uma etapa posterior. Os comandos de instalação e verificação serão adicionados junto à implementação; não há workflow de deploy executável nesta etapa.
+O destino de hospedagem será escolhido posteriormente. O workflow de reparo do checkout recebe o incidente CHK-001 e abre um PR no checkout. Workflows equivalentes nos outros repositórios ficam para uma etapa posterior. Os comandos estão no README e o CI em `.github/workflows/ci.yml`. Dockerfile disponível; ainda não há deploy para hospedagem configurado.
 
 ## Critérios de entrega para os 50 minutos
 
