@@ -1,5 +1,19 @@
 # Especificação de bbw-storefront
 
+## Escopo da apresentação de 50 minutos
+
+A apresentação tem **50 minutos** e começa com a aplicação já executando a revisão defeituosa de **CHK-001**. A primeira compra revela a falha; a meta é iniciar Sentry → issue no checkout → workflow nos primeiros **5 minutos**.
+
+Enquanto o agente trabalha em segundo plano, apresentar a arquitetura, o YAML do workflow, o contexto do incidente e os critérios de validação. Retomar os resultados por volta do minuto 30, sem acompanhar logs continuamente. Os cerca de 25 minutos disponíveis não são garantia de conclusão.
+
+**Prioridades:** CHK-001 é o único cenário obrigatório; CAT-001 é reserva opcional, preparada apenas depois do fluxo principal; USR-001, USR-002, CAT-002, CHK-002, WEB-001 e WEB-002 são material complementar. Nenhum cenário adicional bloqueia a entrega.
+
+Manter quatro aplicações pequenas, dados fictícios em memória, HTTP/JSON e CI/CD próprio por repositório. Autenticação real, banco de dados, pagamentos, mensageria, reparos entre repositórios e múltiplos agentes ficam fora desta entrega.
+
+**Papel deste repositório:** Interface saudável em uma única página: cliente, produto, quantidade, modalidade, envio e resultado. Abrir com customer-pickup, duas unidades de product-standard e pickup pré-selecionados; a primeira tentativa de finalizar revela CHK-001. Não introduzir falhas de renderização na apresentação.
+
+[Roteiro completo e contingência](https://github.com/bbdw-gh-action/bbw-storefront/blob/main/docs/ROTEIRO.md).
+
 ## Objetivo e responsabilidade
 
 Permitir selecionar cliente, navegar pelo catálogo, montar carrinho, escolher entrega ou retirada e visualizar o pedido.
@@ -15,7 +29,7 @@ Tecnologia: React e TypeScript; ferramenta de build a definir. Porta local propo
 | Catálogo | Consumir `GET /products`, mostrar preço e imagem ou placeholder |
 | Cliente | Selecionar `customer-pickup` ou `customer-delivery` e consultar seu perfil |
 | Carrinho | Quantidades inteiras de 1 a 99; agregar adições do mesmo produto em uma linha |
-| Finalização | Enviar `POST /orders`; informar erros 422 sem quebrar a tela |
+| Finalização | Enviar `POST /orders`; mostrar erros 422 e 500 sem quebrar a tela, preservando o carrinho e permitindo nova tentativa manual |
 | Confirmação | Exibir ID, total, modalidade e endereço somente quando for entrega |
 
 Consumir os contratos dos três backends por HTTP/JSON, com URLs configuráveis. Os backends devem permitir a origem local configurada via CORS. Exibir moeda BRL em pt-BR; manter centavos inteiros no estado. Manter o carrinho após erro e impedir submissões simultâneas na mesma tela.
@@ -30,30 +44,33 @@ As fixtures em `specs/fixtures.json` são dados de entrada para implementação 
 - Envelope de erro: `{"error":{"code":"CODIGO_ESTAVEL","message":"Mensagem legível"},"requestId":"identificador"}`.
 - Propagar `X-Request-ID` nas chamadas e respostas; gerar um identificador quando ausente.
 - Dados exclusivamente fictícios. Não incluir tokens, cabeçalhos de autenticação ou dados pessoais reais nos eventos.
-- Cada aplicação usa seu próprio projeto Sentry e identifica ambiente, release, serviço e cenário de ensaio.
+- O checkout deve ter projeto Sentry próprio e identificar ambiente, release, serviço e cenário. A instrumentação dos demais serviços é posterior; se adicionada, usar projetos próprios.
 - Contratos de erro esperados (4xx) não são falhas inesperadas por padrão. Os defeitos descritos devem gerar exceções reais, instrumentadas explicitamente.
 - A implementação deve evitar captura duplicada da mesma exceção.
 
 ## Observabilidade
 
-Inicializar o SDK apropriado antes da aplicação. Em TypeScript, publicar source maps associados à release. Em Go, capturar panics no limite HTTP, registrar a stack e retornar 500 sem derrubar o serviço; não presumir que a recuperação padrão de net/http envia eventos ao Sentry. No React, conectar o limite de erro ao SDK.
+Para CHK-001, instrumentar o checkout, publicar source maps associados à release e comprovar o envio de uma exceção real ao Sentry. Propagar o request ID pelos serviços e evitar eventos duplicados. Testes automatizados usam clientes simulados, sem credenciais reais.
 
-Correlacionar a requisição com a release e o cenário. Verificar a entrega do evento em ensaio real, aguardando a ingestão. Testes unitários não devem depender de Sentry ou credenciais reais.
+Users e catalog devem permanecer saudáveis; a interface mostra o erro retornado pelo checkout e permite repetir a mesma compra após o reparo. A instrumentação Sentry própria desses três repositórios não é requisito desta apresentação.
 
+Se CAT-001 for preparado como reserva, instrumentar a recuperação do panic HTTP no Go para capturar stack e retornar 500 sem derrubar o serviço. Essa preparação é opcional e ocorre depois da conclusão do cenário principal.
 
 ## CI/CD independente
 
-**CI previsto:** Instalação pelo lockfile, lint, tipos, testes de componentes, build e testes de navegador dos fluxos críticos com APIs simuladas.
+**CI previsto:** Instalação pelo lockfile, lint, tipos, testes de componentes, build e um teste de navegador da compra principal com APIs simuladas, cobrindo erro e posterior sucesso.
 
-**CD previsto:** Artefato próprio da interface, URLs públicas configuráveis, release, source maps e rollback próprios. A composição local não substitui os pipelines dos serviços.
+**CD previsto:** Artefato próprio da interface, URLs públicas configuráveis, release e rollback próprios. Upload de source maps ao Sentry fica para a instrumentação opcional da interface. A composição local não substitui os pipelines dos serviços.
 
-O destino de hospedagem será escolhido posteriormente. O workflow de reparo recebe contexto do incidente, trabalha neste repositório e abre um PR. Os comandos de instalação e verificação serão adicionados junto à implementação; não há workflow de deploy executável nesta etapa.
+O destino de hospedagem será escolhido posteriormente. O workflow de reparo do checkout recebe o incidente CHK-001 e abre um PR no checkout. Workflows equivalentes nos outros repositórios ficam para uma etapa posterior. Os comandos de instalação e verificação serão adicionados junto à implementação; não há workflow de deploy executável nesta etapa.
 
-## Critérios de entrega
+## Critérios de entrega para os 50 minutos
 
-- Implementar o caminho saudável de acordo com este contrato.
-- Criar testes dos comportamentos esperados, incluindo entradas inválidas.
-- Instrumentar falhas inesperadas e comprovar captura em um ambiente de demonstração.
-- Implementar cenários isolados conforme `FALHAS.md`, preservando revisões reproduzíveis.
-- Executar CI com ferramentas próprias desta tecnologia.
-- Documentar execução local, configuração e encerramento de processos.
+- Interface saudável em uma única página: cliente, produto, quantidade, modalidade, envio e resultado. Abrir com customer-pickup, duas unidades de product-standard e pickup pré-selecionados; a primeira tentativa de finalizar revela CHK-001. Não introduzir falhas de renderização na apresentação.
+- Validar os contratos usados pela compra principal e os casos vizinhos necessários à correção.
+- Manter build, testes e deploy independentes deste repositório.
+- Ensaiar a compra com as quatro versões fixadas e registrar request ID e releases.
+- Preparar um resultado anterior de CHK-001, identificado como ensaio, para a contingência.
+- Documentar execução local e encerramento dos processos.
+
+Para checkout, a entrega exige CHK-001 reproduzível, evento Sentry, issue, execução do agente, PR com teste falhando antes e passando depois e repetição da compra corrigida. Para os demais repositórios, a entrega exige suportar essa jornada de forma saudável. As soluções e falhas complementares continuam públicas para exploração posterior, sem obrigação de implementação nesta etapa.

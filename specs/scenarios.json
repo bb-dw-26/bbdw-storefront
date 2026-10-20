@@ -15,7 +15,9 @@
         "Placeholder possui texto alternativo apropriado.",
         "Produto com imagem preserva a imagem.",
         "Produto sem imagem pode ser adicionado ao carrinho."
-      ]
+      ],
+      "presentationRole": "complementar",
+      "requiredForPresentation": false
     },
     {
       "id": "WEB-002",
@@ -29,7 +31,18 @@
         "Retirada sem endereço exibe confirmação.",
         "Entrega com endereço continua exibindo o endereço.",
         "Renderizar a confirmação não dispara outra criação de pedido."
-      ]
+      ],
+      "presentationRole": "complementar",
+      "requiredForPresentation": false
     }
-  ]
+  ],
+  "presentation": {
+    "durationMinutes": 50,
+    "primaryScenario": "CHK-001",
+    "backupScenario": "CAT-001",
+    "startWithFaultyApplication": true,
+    "workflowStartTargetMinute": 5,
+    "resultsTargetMinute": 30,
+    "requiredRepairRepository": "bbw-checkout"
+  }
 }

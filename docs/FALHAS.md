@@ -4,6 +4,8 @@ Os cenários abaixo são planejados. Ainda não há defeitos executáveis, branc
 
 ## WEB-001 — Miniatura ausente
 
+**Prioridade na apresentação:** Complementar — fora da implementação obrigatória e da agenda de 50 minutos.
+
 **Preparação:** executar a revisão correspondente a `demo/web-001` com as fixtures sintéticas e as demais dependências em versões saudáveis.
 
 **Reprodução:** `Abrir o catálogo com a resposta válida que contém product-no-image e thumbnailUrl=null.`
@@ -18,6 +20,8 @@ Os cenários abaixo são planejados. Ainda não há defeitos executáveis, branc
 
 
 ## WEB-002 — Confirmação de retirada
+
+**Prioridade na apresentação:** Complementar — fora da implementação obrigatória e da agenda de 50 minutos.
 
 **Preparação:** executar a revisão correspondente a `demo/web-002` com as fixtures sintéticas e as demais dependências em versões saudáveis.
 

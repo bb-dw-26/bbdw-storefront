@@ -4,6 +4,8 @@ Material público para revisão e comparação. O agente pode consultá-lo, e es
 
 ## WEB-001 — Miniatura ausente
 
+**Prioridade na apresentação:** Complementar — fora da implementação obrigatória e da agenda de 50 minutos.
+
 **Causa planejada:** O componente chama thumbnailUrl.trim() sem tratar null.
 
 **Correção de referência:** Tratar miniatura ausente no componente e usar o placeholder local; preservar o restante do cartão e os produtos com imagem.
@@ -19,6 +21,8 @@ Material público para revisão e comparação. O agente pode consultá-lo, e es
 
 
 ## WEB-002 — Confirmação de retirada
+
+**Prioridade na apresentação:** Complementar — fora da implementação obrigatória e da agenda de 50 minutos.
 
 **Causa planejada:** A confirmação lê deliveryAddress.postalCode mesmo quando fulfillment=pickup.
 
