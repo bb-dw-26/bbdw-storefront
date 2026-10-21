@@ -66,4 +66,6 @@ CAT-001 só pode substituir o cenário principal se essa alternativa tiver sido 
 
 Registrar os links e resultados, preservar as revisões e encerrar todos os processos iniciados para a tarefa. Para outro ensaio, criar uma nova tentativa a partir do commit defeituoso, mantendo os PRs anteriores.
 
-O scaffold saudável já existe. O defeito isolado CHK-001, a instrumentação Sentry e o workflow do agente ainda serão implementados antes do ensaio.
+A aplicação saudável, CHK-001 isolado, a instrumentação Sentry, a ponte e o workflow Codex estão implementados. Antes do palco, concluir a conexão Sentry e o ensaio real até o PR. [Configuração e operação no checkout](https://github.com/bbdw-gh-action/bbw-checkout/blob/main/docs/DEMO.md).
+
+Iniciar a ponte local antes da abertura; ela consulta o Sentry em segundo plano e cria a issue elegível. O PR aponta para a branch defeituosa e traz validação independente. Após revisão, executar o commit corrigido sem sobrescrever a revisão defeituosa. O resultado anterior de contingência ainda precisa ser produzido pelo ensaio conectado.

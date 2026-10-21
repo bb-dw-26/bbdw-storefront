@@ -1,5 +1,6 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createServer } from "node:net";
+import { createServer as createHttpServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { mkdir } from "node:fs/promises";
@@ -8,6 +9,9 @@ import { chromium, expect } from "@playwright/test";
 const storefront = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const workspace = resolve(storefront, "..");
 const processes = [];
+const faulty = process.argv.includes("--expect-failure");
+const envelopes = [];
+let collector;
 let browser;
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -58,6 +62,14 @@ async function ready(url) {
 
 try {
   for (const port of [3000, 3001, 3002, 3003]) await assertFree(port);
+  // Transporte HTTP real do SDK, mas só para um coletor local sem conta Sentry.
+  collector = createHttpServer(async (request, response) => {
+    const chunks = [];
+    for await (const chunk of request) chunks.push(Buffer.from(chunk));
+    envelopes.push(Buffer.concat(chunks).toString());
+    response.writeHead(200, { "Content-Type": "application/json" }).end("{}");
+  });
+  await new Promise((resolve) => collector.listen(0, "127.0.0.1", resolve));
   start(
     process.execPath,
     ["dist/src/main.js"],
@@ -85,6 +97,11 @@ try {
       USERS_URL: "http://127.0.0.1:3001",
       CATALOG_URL: "http://127.0.0.1:3002",
       DEPENDENCY_TIMEOUT_MS: "2000",
+      SENTRY_DSN: `http://public@127.0.0.1:${collector.address().port}/1`,
+      SENTRY_RELEASE: "smoke-local",
+      SENTRY_ENVIRONMENT: "test",
+      DEMO_SCENARIO: "CHK-001",
+      DEMO_RUN_ID: "smoke-local",
     },
   );
   start(
@@ -118,6 +135,19 @@ try {
   const submit = page.getByRole("button", { name: "Finalizar compra" });
   await expect(submit).toBeEnabled();
   await submit.click();
+  if (faulty) {
+    await expect(page.getByRole("alert")).toContainText("Não foi possível");
+    await expect(page.getByRole("spinbutton", { name: "Quantidade de Caneca Demo" })).toHaveValue("2");
+    await expect.poll(() => envelopes.length).toBe(1);
+    const event = envelopes[0].split("\n").filter(Boolean).map((line) => JSON.parse(line)).find((item) => item.exception);
+    expect(event.tags.scenario).toBe("CHK-001");
+    expect(event.tags.service).toBe("bbw-checkout");
+    expect(event.exception.values[0].type).toBe("TypeError");
+    expect(event.exception.values[0].stacktrace.frames.some((frame) => frame.filename === "app:///src/orders.js")).toBe(true);
+    await expect(page.getByRole("alert")).toContainText(event.tags.request_id);
+    expect(event.request).toBeUndefined();
+    console.log("CHK-001 reproduzido: UI com erro, carrinho preservado e um evento Sentry recebido pelo coletor local.");
+  } else {
   await expect(page.getByRole("status")).toContainText("Pedido confirmado!");
   await expect(page.getByRole("status")).toContainText("80,00");
   await page.getByLabel("Como deseja receber?").selectOption("delivery");
@@ -132,10 +162,12 @@ try {
   await submit.click();
   await expect(page.getByRole("status")).toContainText("Pedido confirmado!");
   await expect(page.getByRole("status")).toContainText("Rua Fictícia");
+  expect(envelopes).toHaveLength(0);
+  }
   expect(errors).toEqual([]);
   await mkdir(resolve(storefront, "test-results"), { recursive: true });
   await page.screenshot({
-    path: resolve(storefront, "test-results/integrated.png"),
+    path: resolve(storefront, faulty ? "test-results/chk-001.png" : "test-results/integrated.png"),
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -145,11 +177,11 @@ try {
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
-  console.log(
+  if (!faulty) console.log(
     "Compra real validada: retirada, erro de endereço, entrega e layout mobile.",
   );
 } finally {
-  await browser?.close();
+  try { await browser?.close(); } finally {
   for (const { child } of processes.reverse()) {
     if (!child.pid || child.exitCode !== null) continue;
     if (process.platform === "win32") {
@@ -166,6 +198,11 @@ try {
       if (child.exitCode === null && child.signalCode === null)
         child.kill("SIGKILL");
     }
+  }
+  if (collector?.listening) {
+    collector.closeAllConnections();
+    await new Promise((resolve) => collector.close(resolve));
+  }
   }
   console.log("Processos iniciados pelo smoke test foram encerrados.");
 }

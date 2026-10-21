@@ -39,6 +39,11 @@ services:
       USERS_URL: http://users:3001
       CATALOG_URL: http://catalog:3002
       DEPENDENCY_TIMEOUT_MS: 2000
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-bbw-demo}
+      SENTRY_RELEASE: ${SENTRY_RELEASE:-}
+      DEMO_SCENARIO: ${DEMO_SCENARIO:-CHK-001}
+      DEMO_RUN_ID: ${DEMO_RUN_ID:-ensaio-001}
     ports: ["127.0.0.1:3003:3003"]
     depends_on:
       users: { condition: service_healthy }

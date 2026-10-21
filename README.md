@@ -6,7 +6,7 @@ Permitir selecionar cliente, navegar pelo catálogo, montar carrinho, escolher e
 
 **Tecnologia prevista:** React e TypeScript; ferramenta de build a definir.
 
-**Estado atual:** scaffold funcional e saudável, com testes, Dockerfile e CI próprio. Os defeitos intencionais, Sentry, workflow do agente e deploy para hospedagem ainda serão implementados. A branch `main` não contém CHK-001; o defeito será introduzido em uma revisão isolada.
+**Estado atual:** aplicação funcional e saudável, com testes, Dockerfile e CI próprio. O checkout contém CHK-001 isolado, instrumentação Sentry e workflow Codex. A conexão Sentry e o ensaio real até o PR estão pendentes; o deploy remoto será definido depois.
 
 ## Escopo da apresentação de 50 minutos
 
@@ -54,12 +54,18 @@ Para iniciar as quatro aplicações juntas, consulte [execução integrada](http
 
 ## Fluxo da demonstração
 
-Compra com CHK-001 → Sentry → issue em bbw-checkout → GitHub Actions → Copilot ou Codex → PR com correção e teste → revisão → deploy → repetição da requisição.
+Compra com CHK-001 → Sentry → issue em bbw-checkout → GitHub Actions → Codex → PR com correção e teste → revisão → deploy → repetição da requisição.
 
-Cada repositório terá seu próprio CI/CD. O workflow de reparo obrigatório nesta entrega é o do checkout; a expansão para outros repositórios é posterior. A escolha entre Copilot e Codex permanece aberta. As soluções públicas permitem comparar o reparo com os critérios esperados; este é um exercício guiado.
+Cada repositório terá seu próprio CI/CD. O workflow de reparo obrigatório nesta entrega é o do checkout; a expansão para outros repositórios é posterior. Codex é a opção inicial do checkout. As soluções públicas permitem comparar o reparo com os critérios esperados; este é um exercício guiado.
 
 ## Outros repositórios
 
 - [bbw-users](https://github.com/bbdw-gh-action/bbw-users)
 - [bbw-catalog](https://github.com/bbdw-gh-action/bbw-catalog)
 - [bbw-checkout](https://github.com/bbdw-gh-action/bbw-checkout)
+
+## CHK-001 e observabilidade
+
+O checkout já tem a revisão defeituosa, Sentry instrumentado e workflow Codex. A conexão e o ensaio real até o PR ainda precisam ser concluídos. Consulte [DEMO.md do checkout](https://github.com/bbdw-gh-action/bbw-checkout/blob/main/docs/DEMO.md).
+
+O Compose repassa as variáveis Sentry somente ao checkout. `npm run smoke -- --expect-failure` verifica a revisão defeituosa com as quatro aplicações e um coletor local de envelopes Sentry; `npm run smoke` verifica a revisão saudável. Compile a revisão correspondente antes de executar.
