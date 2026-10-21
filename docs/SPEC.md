@@ -44,7 +44,7 @@ O scaffold implementa os endpoints e fluxos obrigatórios. Users e catalog carre
 - Envelope de erro: `{"error":{"code":"CODIGO_ESTAVEL","message":"Mensagem legível"},"requestId":"identificador"}`.
 - Propagar `X-Request-ID` nas chamadas e respostas; gerar um identificador quando ausente.
 - Dados exclusivamente fictícios. Não incluir tokens, cabeçalhos de autenticação ou dados pessoais reais nos eventos.
-- O checkout deve ter projeto Sentry próprio e identificar ambiente, release, serviço e cenário. A instrumentação dos demais serviços é posterior; se adicionada, usar projetos próprios.
+- O checkout deve ter projeto Sentry próprio e identificar ambiente, release, serviço e cenário. Os demais serviços também possuem SDK e projetos próprios; consulte docs/SENTRY.md para as evidências.
 - Contratos de erro esperados (4xx) não são falhas inesperadas por padrão. Os defeitos descritos devem gerar exceções reais, instrumentadas explicitamente.
 - A implementação deve evitar captura duplicada da mesma exceção.
 
@@ -52,7 +52,7 @@ O scaffold implementa os endpoints e fluxos obrigatórios. Users e catalog carre
 
 Para CHK-001, instrumentar o checkout, publicar source maps associados à release e comprovar o envio de uma exceção real ao Sentry. Propagar o request ID pelos serviços e evitar eventos duplicados. Testes automatizados usam clientes simulados, sem credenciais reais.
 
-Users e catalog devem permanecer saudáveis; a interface mostra o erro retornado pelo checkout e permite repetir a mesma compra após o reparo. A instrumentação Sentry própria desses três repositórios não é requisito desta apresentação.
+Users e catalog devem permanecer saudáveis; a interface mostra o erro retornado pelo checkout e permite repetir a mesma compra após o reparo. A instrumentação Sentry própria desses três repositórios foi autorizada e validada como suporte à demonstração.
 
 Se CAT-001 for preparado como reserva, instrumentar a recuperação do panic HTTP no Go para capturar stack e retornar 500 sem derrubar o serviço. Essa preparação é opcional e ocorre depois da conclusão do cenário principal.
 
@@ -74,3 +74,7 @@ O destino de hospedagem será escolhido posteriormente. O workflow de reparo do 
 - Documentar execução local e encerramento dos processos.
 
 Para checkout, a entrega exige CHK-001 reproduzível, evento Sentry, issue, execução do agente, PR com teste falhando antes e passando depois e repetição da compra corrigida. Para os demais repositórios, a entrega exige suportar essa jornada de forma saudável. As soluções e falhas complementares continuam públicas para exploração posterior, sem obrigação de implementação nesta etapa.
+
+## Instrumentação adicional autorizada
+
+O serviço possui SDK e projeto Sentry próprio. A validação e a configuração estão em [SENTRY.md](SENTRY.md). Isso não adiciona novos cenários defeituosos à apresentação: CHK-001 continua sendo o único obrigatório.

@@ -4,6 +4,11 @@ services:
     image: bbw-users:local
     build: ../bbw-users
     environment:
+      SENTRY_DSN: ${USERS_SENTRY_DSN:-}
+      SENTRY_RELEASE: ${USERS_SENTRY_RELEASE:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-bbw-local}
+      DEMO_SCENARIO: none
+      DEMO_RUN_ID: ${DEMO_RUN_ID:-local}
       PORT: 3001
       CORS_ORIGIN: http://localhost:3000
     ports: ["127.0.0.1:3001:3001"]
@@ -22,6 +27,11 @@ services:
     image: bbw-catalog:local
     build: ../bbw-catalog
     environment:
+      SENTRY_DSN: ${CATALOG_SENTRY_DSN:-}
+      SENTRY_RELEASE: ${CATALOG_SENTRY_RELEASE:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-bbw-local}
+      DEMO_SCENARIO: none
+      DEMO_RUN_ID: ${DEMO_RUN_ID:-local}
       PORT: 3002
       CORS_ORIGIN: http://localhost:3000
     ports: ["127.0.0.1:3002:3002"]
@@ -61,7 +71,14 @@ services:
       retries: 10
   storefront:
     image: bbw-storefront:local
-    build: .
+    build:
+      context: .
+      args:
+        VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
+        VITE_SENTRY_ENVIRONMENT: ${VITE_SENTRY_ENVIRONMENT:-bbw-local}
+        VITE_SENTRY_RELEASE: ${VITE_SENTRY_RELEASE:-}
+        VITE_DEMO_SCENARIO: ${VITE_DEMO_SCENARIO:-none}
+        VITE_DEMO_RUN_ID: ${VITE_DEMO_RUN_ID:-local}
     ports: ["127.0.0.1:3000:80"]
     depends_on:
       checkout: { condition: service_healthy }

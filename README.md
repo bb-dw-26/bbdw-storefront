@@ -6,7 +6,7 @@ Permitir selecionar cliente, navegar pelo catálogo, montar carrinho, escolher e
 
 **Tecnologia prevista:** React e TypeScript; ferramenta de build a definir.
 
-**Estado atual:** aplicação funcional e saudável, com testes, Dockerfile e CI próprio. O checkout contém CHK-001 isolado, instrumentação Sentry e workflow Codex. A conexão Sentry e o ensaio real até o PR estão pendentes; o deploy remoto será definido depois.
+**Estado atual:** aplicação funcional e saudável, com testes, Dockerfile e CI próprio. O checkout contém CHK-001 isolado, instrumentação Sentry e workflow Codex. A conexão Sentry e a captura neste serviço foram validadas; o ensaio real até o PR continua pendente; o deploy remoto será definido depois.
 
 ## Escopo da apresentação de 50 minutos
 
@@ -69,3 +69,7 @@ Cada repositório terá seu próprio CI/CD. O workflow de reparo obrigatório ne
 O checkout já tem a revisão defeituosa, Sentry instrumentado e workflow Codex. A conexão e o ensaio real até o PR ainda precisam ser concluídos. Consulte [DEMO.md do checkout](https://github.com/bbdw-gh-action/bbw-checkout/blob/main/docs/DEMO.md).
 
 O Compose repassa as variáveis Sentry somente ao checkout. `npm run smoke -- --expect-failure` verifica a revisão defeituosa com as quatro aplicações e um coletor local de envelopes Sentry; `npm run smoke` verifica a revisão saudável. Compile a revisão correspondente antes de executar.
+
+## Monitoramento Sentry
+
+SDK configurado no projeto próprio `bbw-storefront`, com captura real validada. Consulte [configuração e evidências](docs/SENTRY.md). A criação automática de issues e o reparo por agente continuam no escopo principal do checkout.
