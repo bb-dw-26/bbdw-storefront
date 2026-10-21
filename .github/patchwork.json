@@ -1,0 +1,15 @@
+{
+  "repository": "bbdw-gh-action/bbdw-storefront",
+  "baseBranch": "main",
+  "runtime": "playwright",
+  "sentry": {
+    "org": "bbdw-workshop-jj",
+    "project": "bbdw-storefront",
+    "projectId": "4512294859767808"
+  },
+  "sourceFiles": [
+    "src/App.tsx",
+    "src/api.ts"
+  ],
+  "testPattern": "^tests/patchwork-[a-z0-9-]+\\.spec\\.ts$"
+}

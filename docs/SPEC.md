@@ -62,7 +62,7 @@ Se CAT-001 for preparado como reserva, instrumentar a recuperação do panic HTT
 
 **CD previsto:** Artefato próprio da interface, URLs públicas configuráveis, release e rollback próprios. Upload de source maps ao Sentry fica para a instrumentação opcional da interface. A composição local não substitui os pipelines dos serviços.
 
-O destino de hospedagem será escolhido posteriormente. O workflow de reparo do checkout recebe o incidente CHK-001 e abre um PR no checkout. Workflows equivalentes nos outros repositórios ficam para uma etapa posterior. Os comandos estão no README e o CI em `.github/workflows/ci.yml`. Dockerfile disponível; ainda não há deploy para hospedagem configurado.
+O destino de hospedagem será escolhido posteriormente. O workflow de reparo do checkout recebe o incidente CHK-001 e abre um PR no checkout. Os quatro repositórios agora possuem chamada ao Patchwork, com skills e MCP Sentry próprios; veja PATCHWORK.md. Os comandos estão no README e o CI em `.github/workflows/ci.yml`. Dockerfile disponível; ainda não há deploy para hospedagem configurado.
 
 ## Critérios de entrega para os 50 minutos
 
@@ -78,3 +78,7 @@ Para checkout, a entrega exige CHK-001 reproduzível, evento Sentry, issue, exec
 ## Instrumentação adicional autorizada
 
 O serviço possui SDK e projeto Sentry próprio. A validação e a configuração estão em [SENTRY.md](SENTRY.md). Isso não adiciona novos cenários defeituosos à apresentação: CHK-001 continua sendo o único obrigatório.
+
+## Automação compartilhada
+
+Patchwork habilitado neste repositório. Consulte [operação, skills e MCP](PATCHWORK.md).

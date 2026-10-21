@@ -1,0 +1,37 @@
+name: Patchwork
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Número da issue do incidente
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  patchwork:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.actor == 'sentry[bot]' && github.event.issue.user.id == 39604003 &&
+        contains(github.event.issue.labels.*.name, 'agent:repair') &&
+        contains(github.event.issue.labels.*.name, 'sentry')))
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: write
+    # Patchwork v2: motor e workflow fixados na mesma revisão.
+    uses: bbdw-gh-action/patchwork/.github/workflows/patchwork.yml@f3216509d6b69937382c10d654087bbb2bb866a4
+    with:
+      issue_number: ${{ format('{0}', github.event.issue.number || inputs.issue_number) }}
+      config_path: .github/patchwork.json
+      node_version: '24'
+      install_command: |
+        npm ci
+        npx playwright install --with-deps chromium
+      allow_bot_users: sentry[bot]
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
