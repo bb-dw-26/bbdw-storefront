@@ -17,7 +17,7 @@ test("erro de renderização gera um evento e fallback sem dados HTTP", async ({
   await expect(page.getByRole("heading", { name: "Não foi possível exibir a loja." })).toBeVisible();
   await expect.poll(() => events.length).toBe(1);
   const event = events[0];
-  expect(event.tags).toMatchObject({ service: "bbw-storefront", demo_run: "local-test" });
+  expect(event.tags).toMatchObject({ service: "bbdw-storefront", demo_run: "local-test" });
   expect(event.release).toBe("test-release");
   expect(event.request).toBeUndefined();
   expect(event.user).toBeUndefined();

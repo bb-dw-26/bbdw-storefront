@@ -8,7 +8,7 @@ Sentry.init({
   dataCollection: { userInfo: false },
   initialScope: {
     tags: {
-      service: "bbw-storefront",
+      service: "bbdw-storefront",
       scenario: import.meta.env.VITE_DEMO_SCENARIO || "none",
       demo_run: import.meta.env.VITE_DEMO_RUN_ID || "local",
     },

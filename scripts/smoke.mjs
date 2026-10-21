@@ -73,24 +73,24 @@ try {
   start(
     process.execPath,
     ["dist/src/main.js"],
-    resolve(workspace, "bbw-users"),
+    resolve(workspace, "bbdw-users"),
     { PORT: "3001", CORS_ORIGIN: "http://localhost:3000" },
   );
   start(
     resolve(
       workspace,
-      "bbw-catalog",
+      "bbdw-catalog",
       "bin",
       process.platform === "win32" ? "catalog.exe" : "catalog",
     ),
     [],
-    resolve(workspace, "bbw-catalog"),
+    resolve(workspace, "bbdw-catalog"),
     { PORT: "3002", CORS_ORIGIN: "http://localhost:3000" },
   );
   start(
     process.execPath,
     ["dist/src/main.js"],
-    resolve(workspace, "bbw-checkout"),
+    resolve(workspace, "bbdw-checkout"),
     {
       PORT: "3003",
       CORS_ORIGIN: "http://localhost:3000",
@@ -141,7 +141,7 @@ try {
     await expect.poll(() => envelopes.length).toBe(1);
     const event = envelopes[0].split("\n").filter(Boolean).map((line) => JSON.parse(line)).find((item) => item.exception);
     expect(event.tags.scenario).toBe("CHK-001");
-    expect(event.tags.service).toBe("bbw-checkout");
+    expect(event.tags.service).toBe("bbdw-checkout");
     expect(event.exception.values[0].type).toBe("TypeError");
     expect(event.exception.values[0].stacktrace.frames.some((frame) => frame.filename === "app:///src/orders.js")).toBe(true);
     await expect(page.getByRole("alert")).toContainText(event.tags.request_id);

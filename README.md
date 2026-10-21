@@ -1,6 +1,6 @@
-# bbw-storefront
+# bbdw-storefront
 
-Interface e roteiro da demonstração para a demonstração pública de fluxo agêntico no BBW, apresentação do Banco do Brasil.
+Interface e roteiro da demonstração para a demonstração pública de fluxo agêntico no BBDW, apresentação do Banco do Brasil.
 
 Permitir selecionar cliente, navegar pelo catálogo, montar carrinho, escolher entrega ou retirada e visualizar o pedido.
 
@@ -20,7 +20,7 @@ Manter quatro aplicações pequenas, dados fictícios em memória, HTTP/JSON e C
 
 **Papel deste repositório:** Interface saudável em uma única página: cliente, produto, quantidade, modalidade, envio e resultado. Abrir com customer-pickup, duas unidades de product-standard e pickup pré-selecionados; a primeira tentativa de finalizar revela CHK-001. Não introduzir falhas de renderização na apresentação.
 
-[Roteiro completo e contingência](https://github.com/bbdw-gh-action/bbw-storefront/blob/main/docs/ROTEIRO.md).
+[Roteiro completo e contingência](https://github.com/bbdw-gh-action/bbdw-storefront/blob/main/docs/ROTEIRO.md).
 
 ## Executar localmente
 
@@ -41,7 +41,7 @@ Antes do primeiro teste de navegador, execute `npx playwright install chromium`.
 
 Encerre o processo com **Ctrl+C** ao terminar. Cada aplicação tem seu próprio lockfile ou módulo Go, testes e workflow em `.github/workflows/ci.yml`. O CI também constrói a imagem; a publicação e o deploy serão configurados quando a hospedagem for escolhida.
 
-Para iniciar as quatro aplicações juntas, consulte [execução integrada](https://github.com/bbdw-gh-action/bbw-storefront/blob/main/docs/EXECUCAO.md).
+Para iniciar as quatro aplicações juntas, consulte [execução integrada](https://github.com/bbdw-gh-action/bbdw-storefront/blob/main/docs/EXECUCAO.md).
 
 ## Documentação
 
@@ -54,22 +54,22 @@ Para iniciar as quatro aplicações juntas, consulte [execução integrada](http
 
 ## Fluxo da demonstração
 
-Compra com CHK-001 → Sentry → issue em bbw-checkout → GitHub Actions → Codex → PR com correção e teste → revisão → deploy → repetição da requisição.
+Compra com CHK-001 → Sentry → issue em bbdw-checkout → GitHub Actions → Codex → PR com correção e teste → revisão → deploy → repetição da requisição.
 
 Cada repositório terá seu próprio CI/CD. O workflow de reparo obrigatório nesta entrega é o do checkout; a expansão para outros repositórios é posterior. Codex é a opção inicial do checkout. As soluções públicas permitem comparar o reparo com os critérios esperados; este é um exercício guiado.
 
 ## Outros repositórios
 
-- [bbw-users](https://github.com/bbdw-gh-action/bbw-users)
-- [bbw-catalog](https://github.com/bbdw-gh-action/bbw-catalog)
-- [bbw-checkout](https://github.com/bbdw-gh-action/bbw-checkout)
+- [bbdw-users](https://github.com/bbdw-gh-action/bbdw-users)
+- [bbdw-catalog](https://github.com/bbdw-gh-action/bbdw-catalog)
+- [bbdw-checkout](https://github.com/bbdw-gh-action/bbdw-checkout)
 
 ## CHK-001 e observabilidade
 
-O checkout já tem a revisão defeituosa, Sentry instrumentado e workflow Codex. A conexão e o ensaio real até o PR ainda precisam ser concluídos. Consulte [DEMO.md do checkout](https://github.com/bbdw-gh-action/bbw-checkout/blob/main/docs/DEMO.md).
+O checkout já tem a revisão defeituosa, Sentry instrumentado e workflow Codex. A conexão e o ensaio real até o PR ainda precisam ser concluídos. Consulte [DEMO.md do checkout](https://github.com/bbdw-gh-action/bbdw-checkout/blob/main/docs/DEMO.md).
 
 O Compose repassa as variáveis Sentry somente ao checkout. `npm run smoke -- --expect-failure` verifica a revisão defeituosa com as quatro aplicações e um coletor local de envelopes Sentry; `npm run smoke` verifica a revisão saudável. Compile a revisão correspondente antes de executar.
 
 ## Monitoramento Sentry
 
-SDK configurado no projeto próprio `bbw-storefront`, com captura real validada. Consulte [configuração e evidências](docs/SENTRY.md). A criação automática de issues e o reparo por agente continuam no escopo principal do checkout.
+SDK configurado no projeto próprio `bbdw-storefront`, com captura real validada. Consulte [configuração e evidências](docs/SENTRY.md). A criação automática de issues e o reparo por agente continuam no escopo principal do checkout.

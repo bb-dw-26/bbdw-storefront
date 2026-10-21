@@ -14,7 +14,7 @@ Os cenários abaixo são planejados. Ainda não há defeitos executáveis, branc
 
 **Comportamento correto:** Produto visível com placeholder acessível, preço e botão de adicionar funcionais.
 
-**Telemetria:** registrar serviço `bbw-storefront`, cenário `WEB-001`, release, request ID e stack trace. A mensagem exata da exceção pode variar conforme o runtime.
+**Telemetria:** registrar serviço `bbdw-storefront`, cenário `WEB-001`, release, request ID e stack trace. A mensagem exata da exceção pode variar conforme o runtime.
 
 **Aceitação:** conferir os testes e casos vizinhos em [Soluções de referência](SOLUCOES.md), repetir a requisição e registrar as evidências em [Avaliação](AVALIACAO.md).
 
@@ -31,6 +31,6 @@ Os cenários abaixo são planejados. Ainda não há defeitos executáveis, branc
 
 **Comportamento correto:** Confirmação mostra retirada, ID do pedido e R$ 80,00, sem campo de endereço.
 
-**Telemetria:** registrar serviço `bbw-storefront`, cenário `WEB-002`, release, request ID e stack trace. A mensagem exata da exceção pode variar conforme o runtime.
+**Telemetria:** registrar serviço `bbdw-storefront`, cenário `WEB-002`, release, request ID e stack trace. A mensagem exata da exceção pode variar conforme o runtime.
 
 **Aceitação:** conferir os testes e casos vizinhos em [Soluções de referência](SOLUCOES.md), repetir a requisição e registrar as evidências em [Avaliação](AVALIACAO.md).

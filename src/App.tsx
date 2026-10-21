@@ -110,7 +110,7 @@ export default function App() {
           loja<span>demo</span>
           <span className="dot">.</span>
         </a>
-        <span className="badge">BBW · ambiente de demonstração</span>
+        <span className="badge">BBDW · ambiente de demonstração</span>
       </header>
       <main>
         <section className="intro">
@@ -288,7 +288,7 @@ export default function App() {
         )}
       </main>
       <footer>
-        Loja Demo · BBW<span>Uma experiência fictícia, do início ao fim.</span>
+        Loja Demo · BBDW<span>Uma experiência fictícia, do início ao fim.</span>
       </footer>
     </div>
   );

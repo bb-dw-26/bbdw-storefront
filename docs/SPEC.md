@@ -1,4 +1,4 @@
-# Especificação de bbw-storefront
+# Especificação de bbdw-storefront
 
 ## Escopo da apresentação de 50 minutos
 
@@ -12,7 +12,7 @@ Manter quatro aplicações pequenas, dados fictícios em memória, HTTP/JSON e C
 
 **Papel deste repositório:** Interface saudável em uma única página: cliente, produto, quantidade, modalidade, envio e resultado. Abrir com customer-pickup, duas unidades de product-standard e pickup pré-selecionados; a primeira tentativa de finalizar revela CHK-001. Não introduzir falhas de renderização na apresentação.
 
-[Roteiro completo e contingência](https://github.com/bbdw-gh-action/bbw-storefront/blob/main/docs/ROTEIRO.md).
+[Roteiro completo e contingência](https://github.com/bbdw-gh-action/bbdw-storefront/blob/main/docs/ROTEIRO.md).
 
 ## Objetivo e responsabilidade
 

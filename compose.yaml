@@ -1,12 +1,12 @@
-name: bbw-demo
+name: bbdw-demo
 services:
   users:
-    image: bbw-users:local
-    build: ../bbw-users
+    image: bbdw-users:local
+    build: ../bbdw-users
     environment:
       SENTRY_DSN: ${USERS_SENTRY_DSN:-}
       SENTRY_RELEASE: ${USERS_SENTRY_RELEASE:-}
-      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-bbw-local}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-bbdw-local}
       DEMO_SCENARIO: none
       DEMO_RUN_ID: ${DEMO_RUN_ID:-local}
       PORT: 3001
@@ -24,12 +24,12 @@ services:
       timeout: 3s
       retries: 10
   catalog:
-    image: bbw-catalog:local
-    build: ../bbw-catalog
+    image: bbdw-catalog:local
+    build: ../bbdw-catalog
     environment:
       SENTRY_DSN: ${CATALOG_SENTRY_DSN:-}
       SENTRY_RELEASE: ${CATALOG_SENTRY_RELEASE:-}
-      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-bbw-local}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-bbdw-local}
       DEMO_SCENARIO: none
       DEMO_RUN_ID: ${DEMO_RUN_ID:-local}
       PORT: 3002
@@ -41,8 +41,8 @@ services:
       timeout: 3s
       retries: 10
   checkout:
-    image: bbw-checkout:local
-    build: ../bbw-checkout
+    image: bbdw-checkout:local
+    build: ../bbdw-checkout
     environment:
       PORT: 3003
       CORS_ORIGIN: http://localhost:3000
@@ -50,7 +50,7 @@ services:
       CATALOG_URL: http://catalog:3002
       DEPENDENCY_TIMEOUT_MS: 2000
       SENTRY_DSN: ${SENTRY_DSN:-}
-      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-bbw-demo}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-bbdw-demo}
       SENTRY_RELEASE: ${SENTRY_RELEASE:-}
       DEMO_SCENARIO: ${DEMO_SCENARIO:-CHK-001}
       DEMO_RUN_ID: ${DEMO_RUN_ID:-ensaio-001}
@@ -70,12 +70,12 @@ services:
       timeout: 3s
       retries: 10
   storefront:
-    image: bbw-storefront:local
+    image: bbdw-storefront:local
     build:
       context: .
       args:
         VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
-        VITE_SENTRY_ENVIRONMENT: ${VITE_SENTRY_ENVIRONMENT:-bbw-local}
+        VITE_SENTRY_ENVIRONMENT: ${VITE_SENTRY_ENVIRONMENT:-bbdw-local}
         VITE_SENTRY_RELEASE: ${VITE_SENTRY_RELEASE:-}
         VITE_DEMO_SCENARIO: ${VITE_DEMO_SCENARIO:-none}
         VITE_DEMO_RUN_ID: ${VITE_DEMO_RUN_ID:-local}

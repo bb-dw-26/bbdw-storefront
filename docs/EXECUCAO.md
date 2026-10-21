@@ -10,10 +10,10 @@ Clone os quatro repositórios como pastas irmãs:
 
 ```text
 workspace/
-  bbw-users/
-  bbw-catalog/
-  bbw-checkout/
-  bbw-storefront/
+  bbdw-users/
+  bbdw-catalog/
+  bbdw-checkout/
+  bbdw-storefront/
 ```
 
 ## Com Docker
@@ -39,10 +39,10 @@ Instale Node.js 24 e a versão do Go indicada no catálogo. Execute cada comando
 
 | Pasta | Preparação | Iniciar |
 | --- | --- | --- |
-| bbw-users | `npm ci` | `npm run dev` |
-| bbw-catalog | Go disponível no PATH | `go run ./cmd/server` |
-| bbw-checkout | `npm ci` | `npm run dev` |
-| bbw-storefront | `npm ci` | `npm run dev` |
+| bbdw-users | `npm ci` | `npm run dev` |
+| bbdw-catalog | Go disponível no PATH | `go run ./cmd/server` |
+| bbdw-checkout | `npm ci` | `npm run dev` |
+| bbdw-storefront | `npm ci` | `npm run dev` |
 
 As APIs usam as portas 3001, 3002 e 3003. A interface usa 3000. Encerre todos os terminais de servidor com Ctrl+C após a tarefa.
 
