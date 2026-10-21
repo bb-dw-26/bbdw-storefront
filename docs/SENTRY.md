@@ -34,11 +34,15 @@ O Compose usa `USERS_SENTRY_DSN` e `CATALOG_SENTRY_DSN`, com releases próprias;
 
 Organização `bbdw-workshop-jj`, projeto próprio e repositório homônimo conectados. O `.env` local usa o novo DSN. A organização antiga e seus eventos foram preservados.
 
-- Novo evento: [BBDW-STOREFRONT-1](https://bbdw-workshop-jj.sentry.io/issues/7804863418/); ID `655b141d21a14180ba70242a06777663`.
-- Release: `bbdw-storefront@migration-jj-20261021-122004`.
-- Ambiente: `bbdw-migration-validation`; cenário `SDK-SMOKE`; execução `migration-jj-20261021-122004`.
+- Evento de migração (issue 7804863418 posteriormente excluída a pedido do responsável); ID `655b141d21a14180ba70242a06777663`.
+- Release: `bbw-storefront@migration-jj-20261021-122004`.
+- Ambiente histórico: `bbw-migration-validation`; cenário `SDK-SMOKE`; execução `migration-jj-20261021-122004`.
 - Um evento no projeto correto, sem erros de processamento.
 - Source maps reenviados para esta organização e contexto TypeScript/TSX confirmado no evento.
 - Mapeamento: `../../src/` → `src/`, branch `main`.
 
 A exceção foi gerada apenas em uma cópia isolada da aplicação, sem modificar o código saudável versionado. Todos os processos temporários foram encerrados. Os processos que já existiam antes da migração não foram reiniciados; precisam recarregar o ambiente para usar os novos DSNs.
+
+## Nomes corrigidos para BBDW
+
+Projeto atual: `bbdw-storefront`, vinculado a `bbdw-gh-action/bbdw-storefront`. O ID do projeto e o DSN foram preservados. Pacote/serviço, Compose, CI e documentação usam o novo nome. Os identificadores de releases acima pertencem ao ensaio anterior à renomeação. As instâncias locais antigas foram encerradas durante essa correção.
