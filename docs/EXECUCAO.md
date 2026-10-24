@@ -1,8 +1,4 @@
-# Execução integrada do scaffold
-
-## Estado desta etapa
-
-As quatro aplicações executam a compra saudável. Não há defeito intencional, conexão Sentry, workflow de agente ou deploy remoto nesta etapa. O próximo passo é preservar esta base e preparar CHK-001 em uma revisão isolada.
+# Execução integrada
 
 ## Layout dos checkouts
 
@@ -25,7 +21,7 @@ docker compose up --build -d
 docker compose ps
 ```
 
-Abra http://localhost:3000. A composição usa imagens locais construídas dos checkouts; fixe commits/imagens ao preparar o ensaio do evento. As URLs Vite são incorporadas no build e precisam ser acessíveis pelo navegador, por isso usam localhost no ambiente local.
+Abra http://localhost:3000. A composição usa imagens locais construídas dos checkouts. As URLs Vite são incorporadas no build e precisam ser acessíveis pelo navegador, por isso usam localhost no ambiente local.
 
 Ao terminar:
 
@@ -48,13 +44,7 @@ As APIs usam as portas 3001, 3002 e 3003. A interface usa 3000. Encerre todos os
 
 ## Conferência manual
 
-1. Abra a interface e aguarde o catálogo e os clientes.
-2. Mantenha Cliente Retirada, duas Canecas Demo e Retirar na loja.
-3. Finalize: a confirmação deve mostrar R$ 80,00 e retirada, sem endereço.
-4. Com o mesmo cliente, selecione Receber em casa: deve aparecer a validação de endereço; o carrinho permanece.
-5. Selecione Cliente Entrega: entrega deve concluir normalmente.
-
-O pedido é fictício e não tem persistência. Cada nova submissão manual cria uma nova confirmação.
+Abra a interface, selecione cliente e produtos e finalize um pedido. Confira a resposta da API e os contratos descritos em `SPEC.md`. Os pedidos são fictícios e não têm persistência.
 
 ## Validação por repositório
 

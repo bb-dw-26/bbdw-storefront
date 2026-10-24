@@ -1,26 +1,14 @@
 # bbdw-storefront
 
-Interface e roteiro da demonstração para a demonstração pública de fluxo agêntico no BBDW, apresentação do Banco do Brasil.
+Interface de loja em React e TypeScript com Vite. Permite selecionar cliente, navegar pelo catálogo, montar carrinho, escolher entrega ou retirada e visualizar o pedido.
 
-Permitir selecionar cliente, navegar pelo catálogo, montar carrinho, escolher entrega ou retirada e visualizar o pedido.
+## Experiência da loja
 
-**Tecnologia prevista:** React e TypeScript; ferramenta de build a definir.
+A loja apresenta o catálogo em uma coluna e abre o checkout pelo botão **Carrinho**, em um painel lateral sobreposto. No celular, o painel ocupa a tela inteira. O carrinho começa com duas unidades de `product-standard`, cliente `customer-pickup` e retirada selecionados.
 
-**Estado atual:** aplicação funcional e saudável, com testes, Dockerfile e CI próprio. O checkout contém CHK-001 isolado, instrumentação Sentry e workflow Codex. A conexão Sentry e a captura neste serviço foram validadas; o ensaio real até o PR continua pendente; o deploy remoto será definido depois.
+No painel é possível alterar quantidades, remover produtos, selecionar cliente e escolher retirada ou entrega. Pix e cartão de teste são opções apenas demonstrativas: não coletam dados bancários, não processam pagamentos e não alteram o contrato HTTP ou o total. O pedido continua sendo criado pela API do checkout.
 
-## Escopo da apresentação de 50 minutos
-
-A apresentação tem **50 minutos** e começa com a aplicação já executando a revisão defeituosa de **CHK-001**. A primeira compra revela a falha; a meta é iniciar Sentry → issue no checkout → workflow nos primeiros **5 minutos**.
-
-Enquanto o agente trabalha em segundo plano, apresentar a arquitetura, o YAML do workflow, o contexto do incidente e os critérios de validação. Retomar os resultados por volta do minuto 30, sem acompanhar logs continuamente. Os cerca de 25 minutos disponíveis não são garantia de conclusão.
-
-**Prioridades:** CHK-001 é o único cenário obrigatório; CAT-001 é reserva opcional, preparada apenas depois do fluxo principal; USR-001, USR-002, CAT-002, CHK-002, WEB-001 e WEB-002 são material complementar. Nenhum cenário adicional bloqueia a entrega.
-
-Manter quatro aplicações pequenas, dados fictícios em memória, HTTP/JSON e CI/CD próprio por repositório. Autenticação real, banco de dados, pagamentos, mensageria, reparos entre repositórios e múltiplos agentes ficam fora desta entrega.
-
-**Papel deste repositório:** Interface saudável em uma única página: cliente, produto, quantidade, modalidade, envio e resultado. Abrir com customer-pickup, duas unidades de product-standard e pickup pré-selecionados; a primeira tentativa de finalizar revela CHK-001. Não introduzir falhas de renderização na apresentação.
-
-[Roteiro completo e contingência](https://github.com/bbdw-gh-action/bbdw-storefront/blob/main/docs/ROTEIRO.md).
+Fechar o painel preserva escolhas, erros e resultados, inclusive durante o envio. Após o sucesso, **Continuar comprando** limpa a compra concluída e retorna ao catálogo. Enquanto a confirmação não for concluída por essa ação, o catálogo mantém as adições bloqueadas para preservar o pedido exibido.
 
 ## Executar localmente
 
@@ -41,39 +29,22 @@ Antes do primeiro teste de navegador, execute `npx playwright install chromium`.
 
 Encerre o processo com **Ctrl+C** ao terminar. Cada aplicação tem seu próprio lockfile ou módulo Go, testes e workflow em `.github/workflows/ci.yml`. O CI também constrói a imagem; a publicação e o deploy serão configurados quando a hospedagem for escolhida.
 
-Para iniciar as quatro aplicações juntas, consulte [execução integrada](https://github.com/bbdw-gh-action/bbdw-storefront/blob/main/docs/EXECUCAO.md).
+Para iniciar as quatro aplicações juntas, consulte [execução integrada](https://github.com/bb-dw-26/bbdw-storefront/blob/main/docs/EXECUCAO.md).
 
 ## Documentação
 
 - [Especificação funcional e técnica](docs/SPEC.md)
-- [Cenários de falha e reprodução](docs/FALHAS.md)
-- [Causas e soluções de referência](docs/SOLUCOES.md)
-- [Critérios e registro de avaliação](docs/AVALIACAO.md)
-- [Fixtures sintéticas](specs/fixtures.json)
-- [Catálogo estruturado de cenários](specs/scenarios.json)
-
-## Fluxo da demonstração
-
-Compra com CHK-001 → Sentry → issue em bbdw-checkout → GitHub Actions → Codex → PR com correção e teste → revisão → deploy → repetição da requisição.
-
-Cada repositório terá seu próprio CI/CD. O workflow de reparo obrigatório nesta entrega é o do checkout; a expansão para outros repositórios é posterior. Codex é a opção inicial do checkout. As soluções públicas permitem comparar o reparo com os critérios esperados; este é um exercício guiado.
 
 ## Outros repositórios
 
-- [bbdw-users](https://github.com/bbdw-gh-action/bbdw-users)
-- [bbdw-catalog](https://github.com/bbdw-gh-action/bbdw-catalog)
-- [bbdw-checkout](https://github.com/bbdw-gh-action/bbdw-checkout)
-
-## CHK-001 e observabilidade
-
-O checkout já tem a revisão defeituosa, Sentry instrumentado e workflow Codex. A conexão e o ensaio real até o PR ainda precisam ser concluídos. Consulte [DEMO.md do checkout](https://github.com/bbdw-gh-action/bbdw-checkout/blob/main/docs/DEMO.md).
-
-O Compose repassa as variáveis Sentry somente ao checkout. `npm run smoke -- --expect-failure` verifica a revisão defeituosa com as quatro aplicações e um coletor local de envelopes Sentry; `npm run smoke` verifica a revisão saudável. Compile a revisão correspondente antes de executar.
+- [bbdw-users](https://github.com/bb-dw-26/bbdw-users)
+- [bbdw-catalog](https://github.com/bb-dw-26/bbdw-catalog)
+- [bbdw-checkout](https://github.com/bb-dw-26/bbdw-checkout)
 
 ## Monitoramento Sentry
 
-SDK configurado no projeto próprio `bbdw-storefront`, com captura real validada. Consulte [configuração e evidências](docs/SENTRY.md). A criação automática de issues e o reparo por agente continuam no escopo principal do checkout.
+SDK configurado no projeto próprio `bbdw-storefront`, com SDK de captura. Consulte [configuração](docs/SENTRY.md).
 
 ## Automação compartilhada
 
-Patchwork habilitado neste repositório. Consulte [operação, skills e MCP](docs/PATCHWORK.md).
+Integração com o Patchwork configurada no workflow local. Consulte [operação, skills e MCP](docs/PATCHWORK.md).
