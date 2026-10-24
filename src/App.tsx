@@ -8,6 +8,8 @@ import {
   type Order,
   type Product,
 } from "./api";
+import CheckoutPanel from "./CheckoutPanel";
+import { Icon, ProductImage } from "./visuals";
 
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -21,8 +23,12 @@ export default function App() {
   const [fulfillment, setFulfillment] = useState<"pickup" | "delivery">(
     "pickup",
   );
+  const [payment, setPayment] = useState<"pix" | "card">("pix");
+  const [open, setOpen] = useState(false);
+  const [feedback, setFeedback] = useState("");
   const [pending, setPending] = useState(false);
   const inFlight = useRef(false);
+  const cartButton = useRef<HTMLButtonElement>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
 
@@ -47,7 +53,7 @@ export default function App() {
       .catch(() => {
         if (!controller.signal.aborted)
           setLoadError(
-            "Não foi possível carregar a loja. Confira os serviços e recarregue a página.",
+            "Não foi possível carregar a loja. Tente recarregar a página.",
           );
       })
       .finally(() => {
@@ -57,24 +63,39 @@ export default function App() {
   }, []);
 
   const items = products.filter((product) => (cart[product.id] ?? 0) > 0);
+  const count = items.reduce((sum, product) => sum + cart[product.id], 0);
   const total = items.reduce(
     (sum, product) => sum + product.priceCents * cart[product.id],
     0,
   );
 
   function changeQuantity(id: string, quantity: number) {
-    if (!Number.isInteger(quantity) || quantity < 0 || quantity > 99) return;
+    if (
+      inFlight.current ||
+      order ||
+      !Number.isInteger(quantity) ||
+      quantity < 0 ||
+      quantity > 99
+    )
+      return;
     setCart((previous) => ({ ...previous, [id]: quantity }));
-    setOrder(null);
     setError(null);
   }
 
+  function continueShopping() {
+    setCart({});
+    setOrder(null);
+    setError(null);
+    setFeedback("");
+    setPayment("pix");
+    setOpen(false);
+  }
+
   async function checkout() {
-    if (inFlight.current) return;
+    if (inFlight.current || order || items.length === 0) return;
     inFlight.current = true;
     setPending(true);
     setError(null);
-    setOrder(null);
     try {
       const result = await request<Order>(`${urls.checkout}/orders`, {
         method: "POST",
@@ -104,192 +125,228 @@ export default function App() {
   }
 
   return (
-    <div className="shell">
-      <header>
-        <a className="brand" href="/">
-          loja<span>demo</span>
-          <span className="dot">.</span>
-        </a>
-        <span className="badge">BBDW · ambiente de demonstração</span>
+    <>
+      <header className="site-header">
+        <div className="header-inner">
+          <a className="brand" href="/" aria-label="Loja Demo · BBDW, início">
+            <span className="brand-mark" aria-hidden="true">
+              <Icon name="bag" />
+            </span>
+            <span>
+              Loja Demo <span className="brand-event">· BBDW</span>
+            </span>
+          </a>
+          <div className="header-actions">
+            <span className="demo-badge">
+              <span /> Ambiente de demonstração
+            </span>
+            <button
+              ref={cartButton}
+              className="cart-button"
+              onClick={() => setOpen(true)}
+              disabled={loading || !!loadError}
+              aria-haspopup="dialog"
+              aria-controls="checkout-panel"
+            >
+              <Icon name="bag" /> Carrinho{" "}
+              <span className="cart-count">{count}</span>
+            </button>
+          </div>
+        </div>
       </header>
-      <main>
-        <section className="intro">
-          <p className="eyebrow">ESCOLHA. FINALIZE. EXPERIMENTE.</p>
-          <h1>
-            Uma compra simples.
+
+      <main className="storefront">
+        <section className="intro" aria-labelledby="store-title">
+          <p className="eyebrow">
+            <span /> PEQUENAS ESCOLHAS, BONS MOMENTOS
+          </p>
+          <h1 id="store-title">
+            Seu dia merece
             <br />
-            <span>Uma história para contar.</span>
+            um toque de <span>amarelo.</span>
           </h1>
-          <p>
-            Produtos e clientes fictícios para acompanhar a experiência de ponta
-            a ponta.
+          <p className="intro-copy">
+            Uma pausa para o café. Uma ideia no papel.
+            <br />
+            Encontre seu próximo favorito por aqui.
           </p>
+          <div className="intro-note">
+            <Icon name="spark" /> Uma loja fictícia. Uma experiência completa.
+          </div>
+          <span className="intro-decoration" aria-hidden="true">
+            demo<span>✳</span>
+          </span>
         </section>
-        {loading && <p role="status">Carregando a loja…</p>}
-        {loadError && (
-          <p className="alert" role="alert">
-            {loadError}
-          </p>
-        )}
-        {!loading && !loadError && (
-          <div className="layout">
-            <section aria-labelledby="products-title">
-              <div className="section-title">
-                <h2 id="products-title">Nossa seleção</h2>
-                <span>{products.length} produtos</span>
-              </div>
+
+        <section
+          className="catalog"
+          aria-labelledby="products-title"
+          aria-busy={loading}
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">FEITO PARA O SEU DIA A DIA</p>
+              <h2 id="products-title">Nossa seleção</h2>
+            </div>
+            {!loading && !loadError && (
+              <span className="product-count">{products.length} produtos</span>
+            )}
+          </div>
+          {loading && (
+            <div className="loading-state" role="status">
+              <span className="spinner" /> Preparando a loja…
+            </div>
+          )}
+          {loadError && (
+            <div className="alert" role="alert">
+              <p>{loadError}</p>
+              <button
+                className="text-button"
+                onClick={() => window.location.reload()}
+              >
+                Recarregar página <span aria-hidden="true">↗</span>
+              </button>
+            </div>
+          )}
+          {!loading && !loadError && (
+            <>
               <div className="products">
-                {products.map((product) => (
-                  <article className="product" key={product.id}>
-                    <div className="product-art">
-                      {product.thumbnailUrl ? (
-                        <img src={product.thumbnailUrl} alt={product.name} />
-                      ) : (
-                        <span
-                          role="img"
-                          aria-label={`${product.name}: sem imagem`}
-                        >
-                          ◇
-                        </span>
-                      )}
+                {products.map((product, index) => (
+                  <article
+                    className="product"
+                    key={product.id}
+                    aria-labelledby={`product-${product.id}`}
+                  >
+                    <div className={`product-art product-art-${index % 2}`}>
+                      <ProductImage product={product} />
+                      <span className="art-number" aria-hidden="true">
+                        0{index + 1}
+                      </span>
                     </div>
-                    <div className="product-info">
-                      <h3>{product.name}</h3>
-                      <p>{money(product.priceCents)}</p>
-                      <button
-                        className="secondary"
-                        disabled={
-                          pending ||
-                          !product.available ||
-                          (cart[product.id] ?? 0) >= 99
-                        }
-                        onClick={() =>
-                          changeQuantity(
-                            product.id,
-                            (cart[product.id] ?? 0) + 1,
-                          )
-                        }
-                      >
+                    <div className="product-details">
+                      <span className="product-label">COLEÇÃO DEMO</span>
+                      <h3 id={`product-${product.id}`}>{product.name}</h3>
+                      <p className="product-availability">
+                        <span
+                          className={
+                            product.available
+                              ? "availability-dot"
+                              : "availability-dot unavailable"
+                          }
+                        />
                         {product.available
-                          ? "Adicionar ao carrinho"
-                          : "Indisponível"}
-                      </button>
+                          ? "Disponível na nossa seleção"
+                          : "Indisponível no momento"}
+                      </p>
+                      <div className="product-purchase">
+                        <p className="product-price">
+                          {money(product.priceCents)}
+                          <small>por unidade</small>
+                        </p>
+                        <button
+                          className="add-button"
+                          disabled={
+                            pending ||
+                            !!order ||
+                            !product.available ||
+                            (cart[product.id] ?? 0) >= 99
+                          }
+                          aria-label={`Adicionar ${product.name} ao carrinho`}
+                          onClick={() => {
+                            changeQuantity(
+                              product.id,
+                              (cart[product.id] ?? 0) + 1,
+                            );
+                            setFeedback(
+                              `${product.name} adicionado. ${count + 1} itens no carrinho.`,
+                            );
+                          }}
+                        >
+                          <Icon name="plus" />
+                          {product.available ? "Adicionar" : "Indisponível"}
+                        </button>
+                      </div>
                     </div>
                   </article>
                 ))}
               </div>
-            </section>
-            <aside aria-labelledby="cart-title">
-              <p className="eyebrow">SEU PEDIDO</p>
-              <h2 id="cart-title">Quase lá.</h2>
-              <fieldset disabled={pending}>
-                <label htmlFor="customer">Cliente</label>
-                <select
-                  id="customer"
-                  value={customerId}
-                  onChange={(event) => {
-                    setCustomerId(event.target.value);
-                    setOrder(null);
-                    setError(null);
-                  }}
-                >
-                  {customers.map((customer) => (
-                    <option key={customer.id} value={customer.id}>
-                      {customer.name}
-                    </option>
-                  ))}
-                </select>
-                <label htmlFor="fulfillment">Como deseja receber?</label>
-                <select
-                  id="fulfillment"
-                  value={fulfillment}
-                  onChange={(event) => {
-                    setFulfillment(event.target.value as "pickup" | "delivery");
-                    setOrder(null);
-                    setError(null);
-                  }}
-                >
-                  <option value="pickup">Retirar na loja</option>
-                  <option value="delivery">Receber em casa</option>
-                </select>
-                <div className="cart-items">
-                  {items.map((product) => (
-                    <div className="cart-item" key={product.id}>
-                      <div>
-                        <strong>{product.name}</strong>
-                        <small>{money(product.priceCents)} por unidade</small>
-                      </div>
-                      <label className="quantity">
-                        <span className="sr-only">
-                          Quantidade de {product.name}
-                        </span>
-                        <input
-                          type="number"
-                          min="0"
-                          max="99"
-                          step="1"
-                          value={cart[product.id]}
-                          onChange={(event) =>
-                            changeQuantity(
-                              product.id,
-                              Number(event.target.value),
-                            )
-                          }
-                        />
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </fieldset>
-              <div className="total">
-                <span>Total estimado</span>
-                <strong>{money(total)}</strong>
-              </div>
-              <button
-                className="primary"
-                disabled={pending || items.length === 0}
-                onClick={checkout}
+              <div
+                className="catalog-feedback"
+                role="status"
+                aria-live="polite"
               >
-                {pending ? "Finalizando…" : "Finalizar compra"}
-                <span aria-hidden="true"> →</span>
-              </button>
-              <p className="hint">Nenhuma cobrança será realizada.</p>
-              {error && (
-                <div className="alert" role="alert">
-                  <strong>Não foi dessa vez.</strong>
-                  <p>{error.message}</p>
-                  {error.requestId && (
-                    <small>Referência: {error.requestId}</small>
-                  )}
-                  <p>Seu carrinho foi mantido. Você pode tentar novamente.</p>
-                </div>
-              )}
-              {order && (
-                <div className="success" role="status">
-                  <strong>Pedido confirmado!</strong>
-                  <p>
-                    {money(order.totalCents)} ·{" "}
-                    {order.fulfillment === "pickup"
-                      ? "Retirada na loja"
-                      : "Entrega em casa"}
-                  </p>
-                  {order.fulfillment === "delivery" &&
-                    order.deliveryAddress && (
-                      <p>
-                        {order.deliveryAddress.street} ·{" "}
-                        {order.deliveryAddress.city}
-                      </p>
-                    )}
-                  <small>Pedido {order.id}</small>
-                </div>
-              )}
-            </aside>
+                {order ? (
+                  <span>
+                    Pedido confirmado!{" "}
+                    <button
+                      className="text-button"
+                      onClick={() => setOpen(true)}
+                    >
+                      Ver pedido e continuar comprando{" "}
+                      <span aria-hidden="true">→</span>
+                    </button>
+                  </span>
+                ) : (
+                  feedback
+                )}
+              </div>
+            </>
+          )}
+        </section>
+
+        <div className="store-note">
+          <Icon name="store" />
+          <div>
+            <strong>Do seu jeito, até o final.</strong>
+            <p>
+              Escolha seus favoritos e decida no carrinho: receber em casa ou
+              retirar na loja.
+            </p>
           </div>
-        )}
+          <span aria-hidden="true">↗</span>
+        </div>
       </main>
-      <footer>
-        Loja Demo · BBDW<span>Uma experiência fictícia, do início ao fim.</span>
+      <footer className="site-footer">
+        <span>
+          Loja Demo <strong>· BBDW</strong>
+        </span>
+        <span>Produtos fictícios. Nenhuma cobrança real.</span>
+        <span>
+          Feito para experimentar <span aria-hidden="true">↗</span>
+        </span>
       </footer>
-    </div>
+
+      <CheckoutPanel
+        open={open}
+        onDismiss={() => setOpen(false)}
+        returnFocusRef={cartButton}
+        items={items}
+        cart={cart}
+        count={count}
+        total={total}
+        customers={customers}
+        customerId={customerId}
+        fulfillment={fulfillment}
+        payment={payment}
+        pending={pending}
+        error={error}
+        order={order}
+        onQuantity={changeQuantity}
+        onCustomer={(value) => {
+          setCustomerId(value);
+          setError(null);
+        }}
+        onFulfillment={(value) => {
+          setFulfillment(value);
+          setError(null);
+        }}
+        onPayment={(value) => {
+          setPayment(value);
+          setError(null);
+        }}
+        onCheckout={checkout}
+        onContinue={continueShopping}
+      />
+    </>
   );
 }
