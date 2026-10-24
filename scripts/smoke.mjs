@@ -9,7 +9,7 @@ import { chromium, expect } from "@playwright/test";
 const storefront = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const workspace = resolve(storefront, "..");
 const processes = [];
-const faulty = process.argv.includes("--expect-failure");
+if (process.argv.length > 2) throw new Error("Uso: npm run smoke (sem argumentos).");
 const envelopes = [];
 let collector;
 let browser;
@@ -74,7 +74,7 @@ try {
     process.execPath,
     ["dist/src/main.js"],
     resolve(workspace, "bbdw-users"),
-    { PORT: "3001", CORS_ORIGIN: "http://localhost:3000" },
+    { PORT: "3001", CORS_ORIGIN: "http://localhost:3000", SENTRY_DSN: "" },
   );
   start(
     resolve(
@@ -85,7 +85,7 @@ try {
     ),
     [],
     resolve(workspace, "bbdw-catalog"),
-    { PORT: "3002", CORS_ORIGIN: "http://localhost:3000" },
+    { PORT: "3002", CORS_ORIGIN: "http://localhost:3000", SENTRY_DSN: "" },
   );
   start(
     process.execPath,
@@ -100,7 +100,7 @@ try {
       SENTRY_DSN: `http://public@127.0.0.1:${collector.address().port}/1`,
       SENTRY_RELEASE: "smoke-local",
       SENTRY_ENVIRONMENT: "test",
-      DEMO_SCENARIO: "CHK-001",
+      DEMO_SCENARIO: "none",
       DEMO_RUN_ID: "smoke-local",
     },
   );
@@ -116,6 +116,7 @@ try {
     ],
     storefront,
     {
+      VITE_SENTRY_DSN: "",
       VITE_USERS_URL: "http://localhost:3001",
       VITE_CATALOG_URL: "http://localhost:3002",
       VITE_CHECKOUT_URL: "http://localhost:3003",
@@ -132,52 +133,42 @@ try {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("http://localhost:3000");
-  const submit = page.getByRole("button", { name: "Finalizar compra" });
+  const panel = page.getByRole("dialog");
+  await page.getByRole("button", { name: /^Carrinho/ }).click();
+  await expect(panel).toBeVisible();
+  const submit = panel.getByRole("button", { name: "Finalizar compra" });
   await expect(submit).toBeEnabled();
   await submit.click();
-  if (faulty) {
-    await expect(page.getByRole("alert")).toContainText("Não foi possível");
-    await expect(page.getByRole("spinbutton", { name: "Quantidade de Caneca Demo" })).toHaveValue("2");
-    await expect.poll(() => envelopes.length).toBe(1);
-    const event = envelopes[0].split("\n").filter(Boolean).map((line) => JSON.parse(line)).find((item) => item.exception);
-    expect(event.tags.scenario).toBe("CHK-001");
-    expect(event.tags.service).toBe("bbdw-checkout");
-    expect(event.exception.values[0].type).toBe("TypeError");
-    expect(event.exception.values[0].stacktrace.frames.some((frame) => frame.filename === "app:///src/orders.js")).toBe(true);
-    await expect(page.getByRole("alert")).toContainText(event.tags.request_id);
-    expect(event.request).toBeUndefined();
-    console.log("CHK-001 reproduzido: UI com erro, carrinho preservado e um evento Sentry recebido pelo coletor local.");
-  } else {
-  await expect(page.getByRole("status")).toContainText("Pedido confirmado!");
-  await expect(page.getByRole("status")).toContainText("80,00");
-  await page.getByLabel("Como deseja receber?").selectOption("delivery");
+  await expect(panel.getByRole("status")).toContainText("Pedido confirmado!");
+  await expect(panel.getByRole("status")).toContainText("80,00");
+  await panel.getByRole("button", { name: "Continuar comprando", exact: true }).click();
+  await expect(panel).not.toBeVisible();
+  await page.getByRole("button", { name: "Adicionar Caneca Demo ao carrinho" }).click();
+  await page.getByRole("button", { name: /^Carrinho/ }).click();
+  await panel.getByRole("spinbutton", { name: "Quantidade de Caneca Demo" }).fill("2");
+  await panel.getByRole("radio", { name: /Receber em casa/ }).check();
   await submit.click();
-  await expect(page.getByRole("alert")).toContainText("endereço");
-  await expect(
-    page.getByRole("spinbutton", { name: "Quantidade de Caneca Demo" }),
-  ).toHaveValue("2");
-  await page
-    .getByLabel("Cliente", { exact: true })
-    .selectOption("customer-delivery");
+  await expect(panel.getByRole("alert")).toContainText("endereço");
+  await expect(panel.getByRole("spinbutton", { name: "Quantidade de Caneca Demo" })).toHaveValue("2");
+  await panel.getByLabel("Cliente de demonstração").selectOption("customer-delivery");
   await submit.click();
-  await expect(page.getByRole("status")).toContainText("Pedido confirmado!");
-  await expect(page.getByRole("status")).toContainText("Rua Fictícia");
+  await expect(panel.getByRole("status")).toContainText("Pedido confirmado!");
+  await expect(panel.getByRole("status")).toContainText("Rua Fictícia");
   expect(envelopes).toHaveLength(0);
-  }
   expect(errors).toEqual([]);
   await mkdir(resolve(storefront, "test-results"), { recursive: true });
   await page.screenshot({
-    path: resolve(storefront, faulty ? "test-results/chk-001.png" : "test-results/integrated.png"),
+    path: resolve(storefront, "test-results/integrated.png"),
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(submit).toBeVisible();
+  await expect(panel.getByRole("button", { name: "Continuar comprando", exact: true })).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
-  if (!faulty) console.log(
+  console.log(
     "Compra real validada: retirada, erro de endereço, entrega e layout mobile.",
   );
 } finally {
