@@ -86,3 +86,58 @@ test("a mesma compra conserva a chave; endereço, recebimento, quantidade e conc
   keys.forEach((key) => expect(key).toMatch(/^[a-f0-9-]{36}$/));
   expect(new Set(requestIds).size).toBe(requestIds.length);
 });
+
+test("mantém a finalização bloqueada e envia uma única requisição enquanto a primeira está pendente", async ({
+  page,
+}) => {
+  await page.route("https://sentry.invalid/**", (route) =>
+    route.fulfill({ json: {} }),
+  );
+  await page.route("http://localhost:3002/**", (route) =>
+    route.fulfill({
+      json: {
+        items: [
+          {
+            id: "product-standard",
+            name: "Caneca Demo",
+            priceCents: 4000,
+            available: true,
+            thumbnailUrl: null,
+          },
+        ],
+      },
+    }),
+  );
+
+  const keys: string[] = [];
+  let release: () => void = () => {};
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route("http://localhost:3003/orders", async (route) => {
+    keys.push(route.request().headers()["idempotency-key"]);
+    await held;
+    await route.fulfill({
+      status: 201,
+      json: {
+        id: "pending-order",
+        fulfillment: "pickup",
+        deliveryAddress: null,
+        totalCents: 8000,
+      },
+    });
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: /^Carrinho/ }).click();
+  const submit = page.getByRole("button", { name: /Finalizando/ });
+  await page.getByRole("button", { name: "Finalizar compra" }).click();
+  await expect(submit).toBeDisabled();
+  await page.waitForTimeout(700);
+  await submit.click({ force: true });
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  expect(keys).toHaveLength(1);
+  release();
+  await expect(
+    page.getByText("Pedido confirmado!", { exact: true }),
+  ).toBeVisible();
+  expect(keys).toHaveLength(1);
+});
