@@ -7,8 +7,8 @@ Leia `docs/SPEC.md` e investigue o incidente recebido. O escopo autorizado de pr
 
 Use Playwright com APIs interceptadas e verifique o comportamento observável da interface. O webServer do playwright.config.ts inicia e encerra o Vite; não dependa dos outros três serviços.
 
-Comandos de verificação: npm run typecheck; npx playwright test tests/<arquivo>.spec.ts --workers=1 --retries=0; npm run check. Execute primeiro o teste novo contra o código original e registre a falha funcional. Depois aplique a correção e execute as verificações completas. Não substitua testes por alterações em fixtures ou na telemetria.
+Acrescente uma regressão pertinente e aplique a correção mínima. O workflow executa npm run check uma vez após a resposta do Copilot; não repita a suíte completa durante a investigação nem produza prova automatizada antes/depois. Preserve fixtures, testes e telemetria.
 
-Use o MCP `sentry` para o projeto de origem validado no prompt (que pode ser de outro serviço em um encaminhamento); consulte o evento e a release informados. Não exija um evento do frontend para investigar seu código. A skill compartilhada `patchwork-investigation` é disponibilizada pelo workflow junto com esta pasta.
+Use o MCP `sentry` para o projeto de origem indicado no prompt (que pode ser de outro serviço em um encaminhamento); consulte o incidente e a release relevante ao diagnóstico. Não exija um evento do frontend para investigar seu código. A skill compartilhada `patchwork-investigation` é disponibilizada pelo workflow no diretório de skills do Copilot.
 
 Corrija somente o incidente recebido e encerre processos de teste iniciados.
