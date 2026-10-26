@@ -12,7 +12,7 @@
     "src/api.ts",
     "src/CheckoutPanel.tsx"
   ],
-  "testPattern": "^tests/patchwork-[a-z0-9-]+\\.spec\\.ts$",
+  "testPattern": "^tests/[a-z0-9.-]+\\.spec\\.ts$",
   "handoff": {
     "targets": [],
     "sources": [
