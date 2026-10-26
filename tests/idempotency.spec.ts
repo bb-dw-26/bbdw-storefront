@@ -86,3 +86,38 @@ test("a mesma compra conserva a chave; endereço, recebimento, quantidade e conc
   keys.forEach((key) => expect(key).toMatch(/^[a-f0-9-]{36}$/));
   expect(new Set(requestIds).size).toBe(requestIds.length);
 });
+
+test("duplo clique envia um único POST /orders e o 409 vira estado de espera sem reenvio", async ({
+  page,
+}) => {
+  await page.route("https://sentry.invalid/**", (route) =>
+    route.fulfill({ json: {} }),
+  );
+  await page.route("http://localhost:3002/**", (route) =>
+    route.fulfill({
+      json: {
+        items: [
+          { id: "product-standard", name: "Caneca Demo", priceCents: 4000, available: true, thumbnailUrl: null },
+        ],
+      },
+    }),
+  );
+  let posts = 0;
+  await page.route("http://localhost:3003/orders", async (route) => {
+    posts++;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await route.fulfill({
+      status: 409,
+      json: {
+        error: { code: "CHECKOUT_IN_PROGRESS", message: "Esta compra já está em processamento. Aguarde e tente novamente." },
+        requestId: "req-409",
+      },
+    });
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: /^Carrinho/ }).click();
+  await page.getByRole("button", { name: "Finalizar compra" }).dblclick();
+  await expect(page.getByRole("alert")).toContainText("em processamento");
+  await page.waitForTimeout(800);
+  expect(posts).toBe(1);
+});

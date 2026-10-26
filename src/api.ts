@@ -45,6 +45,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public readonly requestId?: string,
+    public readonly status?: number,
   ) {
     super(message);
   }
@@ -63,6 +64,7 @@ export async function request<T>(
     throw new ApiError(
       body?.error?.message ?? "Não foi possível concluir a operação.",
       body?.requestId,
+      response.status,
     );
   }
   return response.json();

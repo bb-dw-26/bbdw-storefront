@@ -131,7 +131,8 @@ export default function App() {
   }
 
   async function checkout() {
-    if (order || items.length === 0 || addressLoading || (fulfillment === "delivery" && !validAddress(address))) return;
+    if (inFlight.current || order || items.length === 0 || addressLoading || (fulfillment === "delivery" && !validAddress(address))) return;
+    inFlight.current = true;
     purchaseKey.current ??= crypto.randomUUID();
     setPending(true);
     setError(null);
@@ -158,7 +159,9 @@ export default function App() {
     } catch (failure) {
       setError(
         failure instanceof ApiError
-          ? failure
+          ? failure.status === 409
+            ? new ApiError("Esta compra já está em processamento. Aguarde alguns instantes antes de tentar novamente.", failure.requestId, 409)
+            : failure
           : new ApiError(
               "Não foi possível conectar ao checkout. Tente novamente.",
             ),
