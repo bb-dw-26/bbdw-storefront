@@ -12,7 +12,6 @@ export default defineConfig({
       VITE_SENTRY_RELEASE: "test-release",
       VITE_DEMO_SCENARIO: "SDK-SMOKE",
       VITE_DEMO_RUN_ID: "local-test",
-      VITE_USERS_URL: "http://localhost:3001",
       VITE_CATALOG_URL: "http://localhost:3002",
       VITE_CHECKOUT_URL: "http://localhost:3003",
     },

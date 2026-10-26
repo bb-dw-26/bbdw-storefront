@@ -1,14 +1,31 @@
 export const urls = {
-  users: import.meta.env.VITE_USERS_URL ?? "http://localhost:3001",
   catalog: import.meta.env.VITE_CATALOG_URL ?? "http://localhost:3002",
   checkout: import.meta.env.VITE_CHECKOUT_URL ?? "http://localhost:3003",
 };
 
-export type Customer = {
-  id: string;
-  name: string;
-  address: { postalCode: string; street: string; city: string } | null;
+export type Address = {
+  postalCode: string;
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  complement: string;
 };
+export type AddressLookup = Omit<Address, "number" | "complement">;
+export const emptyAddress: Address = { postalCode: "", street: "", number: "", neighborhood: "", city: "", state: "", complement: "" };
+export function normalizeAddress(address: Address): Address {
+  return {
+    postalCode: address.postalCode.trim().replace(/^(\d{5})-(\d{3})$/, "$1$2"),
+    street: address.street.trim(), number: address.number.trim(),
+    neighborhood: address.neighborhood.trim(), city: address.city.trim(),
+    state: address.state.trim().toUpperCase(), complement: address.complement.trim(),
+  };
+}
+export function validAddress(address: Address) {
+  const normalized = normalizeAddress(address);
+  return /^\d{8}$/.test(normalized.postalCode) && !!normalized.street && !!normalized.number && !!normalized.city && /^[A-Z]{2}$/.test(normalized.state);
+}
 export type Product = {
   id: string;
   name: string;
@@ -19,7 +36,7 @@ export type Product = {
 export type Order = {
   id: string;
   fulfillment: "pickup" | "delivery";
-  deliveryAddress: Customer["address"];
+  deliveryAddress: Address | null;
   totalCents: number;
 };
 export class ApiError extends Error {

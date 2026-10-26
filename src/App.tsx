@@ -4,7 +4,11 @@ import {
   money,
   request,
   urls,
-  type Customer,
+  type Address,
+  type AddressLookup,
+  emptyAddress,
+  normalizeAddress,
+  validAddress,
   type Order,
   type Product,
 } from "./api";
@@ -13,10 +17,13 @@ import { Icon, ProductImage } from "./visuals";
 
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [address, setAddress] = useState<Address>({ ...emptyAddress });
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [addressError, setAddressError] = useState("");
+  const addressVersion = useRef(0);
+  const addressAbort = useRef<AbortController | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [customerId, setCustomerId] = useState("customer-pickup");
   const [cart, setCart] = useState<Record<string, number>>({
     "product-standard": 2,
   });
@@ -39,18 +46,8 @@ export default function App() {
       controller.signal,
       AbortSignal.timeout(10000),
     ]);
-    Promise.all([
-      request<{ items: Product[] }>(`${urls.catalog}/products`, { signal }),
-      Promise.all(
-        ["customer-pickup", "customer-delivery"].map((id) =>
-          request<Customer>(`${urls.users}/users/${id}`, { signal }),
-        ),
-      ),
-    ])
-      .then(([catalog, profiles]) => {
-        setProducts(catalog.items);
-        setCustomers(profiles);
-      })
+    request<{ items: Product[] }>(`${urls.catalog}/products`, { signal })
+      .then((catalog) => setProducts(catalog.items))
       .catch(() => {
         if (!controller.signal.aborted)
           setLoadError(
@@ -60,7 +57,7 @@ export default function App() {
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
       });
-    return () => controller.abort();
+    return () => { controller.abort(); addressAbort.current?.abort(); };
   }, []);
 
   const items = products.filter((product) => (cart[product.id] ?? 0) > 0);
@@ -84,6 +81,45 @@ export default function App() {
     setError(null);
   }
 
+  function changeAddress(next: Address) {
+    if (pending || order) return;
+    addressVersion.current++;
+    addressAbort.current?.abort();
+    setAddressLoading(false);
+    setAddressError("");
+    if (fulfillment === "delivery" && JSON.stringify(normalizeAddress(next)) !== JSON.stringify(normalizeAddress(address))) purchaseKey.current = null;
+    setAddress(next);
+    setError(null);
+  }
+
+  async function lookupAddress() {
+    const postalCode = normalizeAddress(address).postalCode;
+    if (!/^\d{8}$/.test(postalCode)) {
+      setAddressError("Informe um CEP com oito dígitos.");
+      return;
+    }
+    addressAbort.current?.abort();
+    const controller = new AbortController();
+    addressAbort.current = controller;
+    const version = ++addressVersion.current;
+    setAddressLoading(true);
+    setAddressError("");
+    try {
+      const found = await request<AddressLookup>(`${urls.checkout}/addresses/${postalCode}`, {
+        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(5000)]),
+      });
+      if (version !== addressVersion.current || controller.signal.aborted) return;
+      const next = { ...address, ...found };
+      if (JSON.stringify(normalizeAddress(next)) !== JSON.stringify(normalizeAddress(address))) purchaseKey.current = null;
+      setAddress(next);
+    } catch (failure) {
+      if (version !== addressVersion.current || controller.signal.aborted) return;
+      setAddressError(failure instanceof Error ? failure.message : "Não foi possível consultar o CEP.");
+    } finally {
+      if (version === addressVersion.current) setAddressLoading(false);
+    }
+  }
+
   function continueShopping() {
     purchaseKey.current = null;
     setCart({});
@@ -95,7 +131,7 @@ export default function App() {
   }
 
   async function checkout() {
-    if (order || items.length === 0) return;
+    if (order || items.length === 0 || addressLoading || (fulfillment === "delivery" && !validAddress(address))) return;
     purchaseKey.current ??= crypto.randomUUID();
     setPending(true);
     setError(null);
@@ -110,7 +146,7 @@ export default function App() {
             : {}),
         },
         body: JSON.stringify({
-          customerId,
+          deliveryAddress: fulfillment === "delivery" ? normalizeAddress(address) : null,
           fulfillment,
           items: items.map((product) => ({
             productId: product.id,
@@ -333,20 +369,21 @@ export default function App() {
         cart={cart}
         count={count}
         total={total}
-        customers={customers}
-        customerId={customerId}
+        address={address}
+        addressLoading={addressLoading}
+        addressError={addressError}
+        onAddress={changeAddress}
+        onLookupAddress={lookupAddress}
         fulfillment={fulfillment}
         payment={payment}
         pending={pending}
         error={error}
         order={order}
         onQuantity={changeQuantity}
-        onCustomer={(value) => {
-          setCustomerId(value);
-          if (value !== customerId) purchaseKey.current = null;
-          setError(null);
-        }}
         onFulfillment={(value) => {
+          addressVersion.current++;
+          addressAbort.current?.abort();
+          setAddressLoading(false);
           setFulfillment(value);
           if (value !== fulfillment) purchaseKey.current = null;
           setError(null);

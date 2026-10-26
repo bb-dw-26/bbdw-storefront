@@ -1,5 +1,5 @@
 {
-  "repository": "bb-dw-26/bbdw-storefront",
+  "repository": "bbdw-gh-action/bbdw-storefront",
   "baseBranch": "main",
   "runtime": "playwright",
   "sentry": {
@@ -17,7 +17,7 @@
     "targets": [],
     "sources": [
       {
-        "repository": "bb-dw-26/bbdw-checkout",
+        "repository": "bbdw-gh-action/bbdw-checkout",
         "baseBranch": "main",
         "scenario": "CHK-003",
         "sentry": {
@@ -27,6 +27,6 @@
         }
       }
     ],
-    "receiveBranch": "demo/chk-003"
+    "receiveBranch": "main"
   }
 }

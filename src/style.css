@@ -1194,3 +1194,11 @@ select {
     transition: none !important;
   }
 }
+
+.address-form { margin-top: 20px; display: grid; gap: 12px; }
+.address-field { display: grid; gap: 6px; }
+.address-form input { width: 100%; min-width: 0; box-sizing: border-box; padding: 12px; border: 1px solid #dce1eb; border-radius: 8px; font: inherit; color: inherit; background: white; }
+.postal-code-search { display: flex; gap: 8px; align-items: center; }
+.postal-code-search input { flex: 1; }
+.postal-code-search button { flex-shrink: 0; }
+.address-form [role="alert"] { color: #9b2929; }

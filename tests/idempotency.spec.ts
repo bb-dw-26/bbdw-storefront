@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("a mesma compra conserva a chave; cliente, recebimento, quantidade e conclusão renovam", async ({
+test("a mesma compra conserva a chave; endereço, recebimento, quantidade e conclusão renovam", async ({
   page,
 }) => {
   await page.route("https://sentry.invalid/**", (route) =>
@@ -21,15 +21,7 @@ test("a mesma compra conserva a chave; cliente, recebimento, quantidade e conclu
       },
     }),
   );
-  await page.route("http://localhost:3001/**", (route) =>
-    route.fulfill({
-      json: {
-        id: route.request().url().split("/").at(-1),
-        name: "Cliente Demo",
-        address: null,
-      },
-    }),
-  );
+
   const keys: string[] = [];
   const requestIds: string[] = [];
   let success = false;
@@ -64,10 +56,12 @@ test("a mesma compra conserva a chave; cliente, recebimento, quantidade e conclu
   await page.getByRole("radio", { name: /Cartão de teste/ }).check();
   await submit();
   expect(keys[1]).toBe(keys[0]);
-  await page.getByRole("combobox").selectOption("customer-delivery");
+  await page.getByRole("radio", { name: /Receber em casa/ }).check();
+  for (const [label, value] of [["CEP", "01001000"], ["Rua", "Rua Teste"], ["Número", "s/n"], ["Cidade", "São Paulo"], ["UF", "SP"]])
+    await page.getByLabel(label, { exact: true }).fill(value);
   await submit();
   expect(keys[2]).not.toBe(keys[1]);
-  await page.getByRole("radio", { name: /Receber em casa/ }).check();
+  await page.getByLabel("Número", { exact: true }).fill("42");
   await submit();
   expect(keys[3]).not.toBe(keys[2]);
   await page.getByRole("spinbutton").fill("3");

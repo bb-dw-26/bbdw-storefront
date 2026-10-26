@@ -17,12 +17,16 @@ const products = [
   },
 ];
 const address = {
-  street: "Rua de Exemplo, 123",
+  street: "Rua de Exemplo",
+  number: "123",
+  neighborhood: "",
+  complement: "",
+  state: "DF",
   city: "Brasília",
-  postalCode: "70000-000",
+  postalCode: "70000000",
 };
 const initialPayload = {
-  customerId: "customer-pickup",
+  deliveryAddress: null,
   fulfillment: "pickup",
   items: [{ productId: "product-standard", quantity: 2 }],
 };
@@ -39,6 +43,11 @@ async function openCheckout(page: Page) {
   return page.getByRole("dialog");
 }
 
+async function fillAddress(page: Page) {
+  for (const [label, value] of [["CEP", address.postalCode], ["Rua", address.street], ["Número", address.number], ["Cidade", address.city], ["UF", address.state]])
+    await page.getByLabel(label, { exact: true }).fill(value);
+}
+
 test.use({ reducedMotion: "reduce" });
 test.beforeEach(async ({ page }) => {
   await page.route("https://sentry.invalid/**", (route) =>
@@ -47,16 +56,7 @@ test.beforeEach(async ({ page }) => {
   await page.route("http://localhost:3002/**", (route) =>
     route.fulfill({ json: { items: products } }),
   );
-  await page.route("http://localhost:3001/**", (route) => {
-    const pickup = route.request().url().endsWith("customer-pickup");
-    return route.fulfill({
-      json: {
-        id: pickup ? "customer-pickup" : "customer-delivery",
-        name: pickup ? "Cliente Retirada" : "Cliente Entrega",
-        address: pickup ? null : address,
-      },
-    });
-  });
+
 });
 
 test("mantém carrinho após erro e confirma retirada na nova tentativa", async ({
@@ -201,7 +201,7 @@ for (const payment of ["Pix de demonstração", "Cartão de teste"]) {
       attempts++;
       expect(route.request().postDataJSON()).toEqual({
         ...initialPayload,
-        customerId: "customer-delivery",
+        deliveryAddress: address,
         fulfillment: "delivery",
       });
       await route.fulfill({
@@ -216,9 +216,8 @@ for (const payment of ["Pix de demonstração", "Cartão de teste"]) {
     });
     await page.goto("/");
     const panel = await openCheckout(page);
-    await panel.getByRole("combobox").selectOption("customer-delivery");
     await panel.getByRole("radio", { name: /Receber em casa/ }).check();
-    await expect(panel.getByText(address.street)).toBeVisible();
+    await fillAddress(page);
     await panel.getByRole("radio", { name: new RegExp(payment) }).check();
     await expect(panel.locator(".order-total")).toContainText("80,00");
     await panel.getByRole("button", { name: "Finalizar compra" }).click();
@@ -234,20 +233,21 @@ for (const payment of ["Pix de demonstração", "Cartão de teste"]) {
   });
 }
 
-test("entrega sem endereço é validada pelo servidor e mantém escolhas após 422", async ({
+test("entrega exige endereço e mantém escolhas após erro 422 do servidor", async ({
   page,
 }) => {
   await page.route("http://localhost:3003/orders", async (route) => {
     expect(route.request().postDataJSON()).toEqual({
       ...initialPayload,
       fulfillment: "delivery",
+      deliveryAddress: address,
     });
     await route.fulfill({
       status: 422,
       json: {
         error: {
           code: "ADDRESS_REQUIRED",
-          message: "Cliente não possui endereço para entrega.",
+          message: "Endereço não aceito para entrega.",
         },
         requestId: "delivery-test",
       },
@@ -256,13 +256,12 @@ test("entrega sem endereço é validada pelo servidor e mantém escolhas após 4
   await page.goto("/");
   const panel = await openCheckout(page);
   await panel.getByRole("radio", { name: /Receber em casa/ }).check();
-  await expect(
-    panel.getByText("Cliente sem endereço cadastrado"),
-  ).toBeVisible();
+  await expect(panel.getByRole("button", { name: "Finalizar compra" })).toBeDisabled();
+  await fillAddress(page);
   await panel.getByRole("radio", { name: /Cartão de teste/ }).check();
   await panel.getByRole("button", { name: "Finalizar compra" }).click();
   await expect(panel.getByRole("alert")).toContainText(
-    "Cliente não possui endereço",
+    "Endereço não aceito",
   );
   await page.keyboard.press("Escape");
   await openCheckout(page);
@@ -313,7 +312,6 @@ for (const success of [true, false]) {
         panel.getByRole("button", { name: "Finalizando…" }),
       ).toBeDisabled();
       await expect(panel.getByRole("spinbutton")).toBeDisabled();
-      await expect(panel.getByRole("combobox")).toBeDisabled();
       for (const radio of await panel.getByRole("radio").all())
         await expect(radio).toBeDisabled();
       await panel.getByRole("button", { name: "Fechar checkout" }).click();
@@ -389,6 +387,7 @@ test("diálogo mantém foco, aceita teclado e devolve foco ao acionador", async 
   await expect(panel).not.toBeVisible();
   await expect(page.getByRole("button", { name: "Carrinho 2" })).toBeFocused();
   await page.keyboard.press("Enter");
+  await panel.getByRole("radio", { name: /Retirar na loja/ }).check();
   await panel.getByRole("button", { name: "Finalizar compra" }).focus();
   await page.keyboard.press("Enter");
   await expect(panel).toBeVisible();

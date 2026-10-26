@@ -1,12 +1,12 @@
 # bbdw-storefront
 
-Interface de loja em React e TypeScript com Vite. Permite selecionar cliente, navegar pelo catálogo, montar carrinho, escolher entrega ou retirada e visualizar o pedido.
+Interface de loja em React e TypeScript com Vite. Permite navegar pelo catálogo, montar carrinho, escolher entrega ou retirada e visualizar o pedido.
 
 ## Experiência da loja
 
-A loja apresenta o catálogo em uma coluna e abre o checkout pelo botão **Carrinho**, em um painel lateral sobreposto. No celular, o painel ocupa a tela inteira. O carrinho começa com duas unidades de `product-standard`, cliente `customer-pickup` e retirada selecionados.
+A loja apresenta o catálogo em uma coluna e abre o checkout pelo botão **Carrinho**, em um painel lateral sobreposto. No celular, o painel ocupa a tela inteira. O carrinho começa com duas unidades de `product-standard` e retirada selecionada.
 
-No painel é possível alterar quantidades, remover produtos, selecionar cliente e escolher retirada ou entrega. Pix e cartão de teste são opções apenas demonstrativas: não coletam dados bancários, não processam pagamentos e não alteram o contrato HTTP ou o total. O pedido continua sendo criado pela API do checkout.
+No painel é possível alterar quantidades, remover produtos, preencher endereço e escolher retirada ou entrega. Pix e cartão de teste são opções apenas demonstrativas: não coletam dados bancários, não processam pagamentos e não alteram o contrato HTTP ou o total. O pedido continua sendo criado pela API do checkout.
 
 Fechar o painel preserva escolhas, erros e resultados, inclusive durante o envio. Após o sucesso, **Continuar comprando** limpa a compra concluída e retorna ao catálogo. Enquanto a confirmação não for concluída por essa ação, o catálogo mantém as adições bloqueadas para preservar o pedido exibido.
 
@@ -25,11 +25,11 @@ Porta padrão: **3000**. Os valores locais já funcionam por padrão. Para perso
 npm run check
 ```
 
-Antes do primeiro teste de navegador, execute `npx playwright install chromium`. O teste inicia seu próprio Vite e o encerra ao finalizar; mantenha a porta 3000 livre.
+Antes do primeiro teste de navegador, execute `npx playwright install chromium`. O teste inicia seu próprio Vite e o encerra ao finalizar; mantenha a porta 3100 livre.
 
 Encerre o processo com **Ctrl+C** ao terminar. Cada aplicação tem seu próprio lockfile ou módulo Go, testes e workflow em `.github/workflows/ci.yml`. O CI também constrói a imagem; a publicação e o deploy serão configurados quando a hospedagem for escolhida.
 
-Para iniciar as quatro aplicações juntas, consulte [execução integrada](https://github.com/bb-dw-26/bbdw-storefront/blob/main/docs/EXECUCAO.md).
+Para iniciar as três aplicações juntas, consulte [execução integrada](https://github.com/bbdw-gh-action/bbdw-storefront/blob/main/docs/EXECUCAO.md).
 
 ## Documentação
 
@@ -37,9 +37,8 @@ Para iniciar as quatro aplicações juntas, consulte [execução integrada](http
 
 ## Outros repositórios
 
-- [bbdw-users](https://github.com/bb-dw-26/bbdw-users)
-- [bbdw-catalog](https://github.com/bb-dw-26/bbdw-catalog)
-- [bbdw-checkout](https://github.com/bb-dw-26/bbdw-checkout)
+- [bbdw-catalog](https://github.com/bbdw-gh-action/bbdw-catalog)
+- [bbdw-checkout](https://github.com/bbdw-gh-action/bbdw-checkout)
 
 ## Monitoramento Sentry
 

@@ -21,15 +21,7 @@ test("uma compra pendente bloqueia também um segundo clique tardio", async ({
       },
     }),
   );
-  await page.route("http://localhost:3001/**", (route) =>
-    route.fulfill({
-      json: {
-        id: route.request().url().split("/").at(-1),
-        name: "Cliente Demo",
-        address: null,
-      },
-    }),
-  );
+
   let release!: () => void;
   const pending = new Promise<void>((resolve) => {
     release = resolve;

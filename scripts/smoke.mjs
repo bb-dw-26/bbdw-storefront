@@ -12,6 +12,8 @@ const processes = [];
 if (process.argv.length > 2) throw new Error("Uso: npm run smoke (sem argumentos).");
 const envelopes = [];
 let collector;
+let provider;
+let lookups = 0;
 let browser;
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -61,7 +63,7 @@ async function ready(url) {
 }
 
 try {
-  for (const port of [3000, 3001, 3002, 3003]) await assertFree(port);
+  for (const port of [3200, 3202, 3203]) await assertFree(port);
   // Transporte HTTP real do SDK, mas só para um coletor local sem conta Sentry.
   collector = createHttpServer(async (request, response) => {
     const chunks = [];
@@ -70,12 +72,12 @@ try {
     response.writeHead(200, { "Content-Type": "application/json" }).end("{}");
   });
   await new Promise((resolve) => collector.listen(0, "127.0.0.1", resolve));
-  start(
-    process.execPath,
-    ["dist/src/main.js"],
-    resolve(workspace, "bbdw-users"),
-    { PORT: "3001", CORS_ORIGIN: "http://localhost:3000", SENTRY_DSN: "" },
-  );
+  provider = createHttpServer((request, response) => {
+    lookups++;
+    response.setHeader("Content-Type", "application/json");
+    response.end(JSON.stringify({ cep: "01001-000", logradouro: "Rua Fictícia", bairro: "Centro", localidade: "Cidade Demo", uf: "SP" }));
+  });
+  await new Promise((resolve) => provider.listen(0, "127.0.0.1", resolve));
   start(
     resolve(
       workspace,
@@ -85,18 +87,19 @@ try {
     ),
     [],
     resolve(workspace, "bbdw-catalog"),
-    { PORT: "3002", CORS_ORIGIN: "http://localhost:3000", SENTRY_DSN: "" },
+    { PORT: "3202", CORS_ORIGIN: "http://localhost:3200", SENTRY_DSN: "" },
   );
   start(
     process.execPath,
     ["dist/src/main.js"],
     resolve(workspace, "bbdw-checkout"),
     {
-      PORT: "3003",
-      CORS_ORIGIN: "http://localhost:3000",
-      USERS_URL: "http://127.0.0.1:3001",
-      CATALOG_URL: "http://127.0.0.1:3002",
+      PORT: "3203",
+      CORS_ORIGIN: "http://localhost:3200",
+      CATALOG_URL: "http://127.0.0.1:3202",
       DEPENDENCY_TIMEOUT_MS: "2000",
+      CHECKOUT_DEMO_DELAY_MS: "0",
+      VIACEP_BASE_URL: `http://127.0.0.1:${provider.address().port}`,
       SENTRY_DSN: `http://public@127.0.0.1:${collector.address().port}/1`,
       SENTRY_RELEASE: "smoke-local",
       SENTRY_ENVIRONMENT: "test",
@@ -111,28 +114,27 @@ try {
       "--host",
       "127.0.0.1",
       "--port",
-      "3000",
+      "3200",
       "--strictPort",
     ],
     storefront,
     {
       VITE_SENTRY_DSN: "",
-      VITE_USERS_URL: "http://localhost:3001",
-      VITE_CATALOG_URL: "http://localhost:3002",
-      VITE_CHECKOUT_URL: "http://localhost:3003",
+      VITE_CATALOG_URL: "http://localhost:3202",
+      VITE_CHECKOUT_URL: "http://localhost:3203",
     },
   );
   await Promise.all(
-    [3001, 3002, 3003].map((port) => ready(`http://127.0.0.1:${port}/health`)),
+    [3202, 3203].map((port) => ready(`http://127.0.0.1:${port}/health`)),
   );
-  await ready("http://127.0.0.1:3000");
+  await ready("http://127.0.0.1:3200");
   browser = await chromium.launch();
   const page = await browser.newPage({
     viewport: { width: 1440, height: 1050 },
   });
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("http://localhost:3000");
+  await page.goto("http://localhost:3200");
   const panel = page.getByRole("dialog");
   await page.getByRole("button", { name: /^Carrinho/ }).click();
   await expect(panel).toBeVisible();
@@ -141,19 +143,22 @@ try {
   await submit.click();
   await expect(panel.getByRole("status")).toContainText("Pedido confirmado!");
   await expect(panel.getByRole("status")).toContainText("80,00");
+  expect(lookups).toBe(0);
   await panel.getByRole("button", { name: "Continuar comprando", exact: true }).click();
   await expect(panel).not.toBeVisible();
   await page.getByRole("button", { name: "Adicionar Caneca Demo ao carrinho" }).click();
   await page.getByRole("button", { name: /^Carrinho/ }).click();
   await panel.getByRole("spinbutton", { name: "Quantidade de Caneca Demo" }).fill("2");
   await panel.getByRole("radio", { name: /Receber em casa/ }).check();
-  await submit.click();
-  await expect(panel.getByRole("alert")).toContainText("endereço");
-  await expect(panel.getByRole("spinbutton", { name: "Quantidade de Caneca Demo" })).toHaveValue("2");
-  await panel.getByLabel("Cliente de demonstração").selectOption("customer-delivery");
+  await expect(submit).toBeDisabled();
+  await panel.getByLabel("CEP", { exact: true }).fill("01001-000");
+  await panel.getByRole("button", { name: "Buscar endereço" }).click();
+  await expect(panel.getByLabel("Rua", { exact: true })).toHaveValue("Rua Fictícia");
+  await panel.getByLabel("Número", { exact: true }).fill("s/n");
   await submit.click();
   await expect(panel.getByRole("status")).toContainText("Pedido confirmado!");
   await expect(panel.getByRole("status")).toContainText("Rua Fictícia");
+  expect(lookups).toBe(1);
   expect(envelopes).toHaveLength(0);
   expect(errors).toEqual([]);
   await mkdir(resolve(storefront, "test-results"), { recursive: true });
@@ -169,7 +174,7 @@ try {
     ),
   ).toBe(true);
   console.log(
-    "Compra real validada: retirada, erro de endereço, entrega e layout mobile.",
+    "Compra real validada: retirada sem consulta de CEP, entrega com endereço e layout mobile.",
   );
 } finally {
   try { await browser?.close(); } finally {
@@ -184,11 +189,15 @@ try {
       child.kill("SIGTERM");
       await Promise.race([
         new Promise((resolve) => child.once("exit", resolve)),
-        delay(3000),
+        delay(3200),
       ]);
       if (child.exitCode === null && child.signalCode === null)
         child.kill("SIGKILL");
     }
+  }
+  if (provider?.listening) {
+    provider.closeAllConnections();
+    await new Promise((resolve) => provider.close(resolve));
   }
   if (collector?.listening) {
     collector.closeAllConnections();

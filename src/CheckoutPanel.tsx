@@ -2,7 +2,8 @@ import { useEffect, useRef, type RefObject } from "react";
 import {
   money,
   type ApiError,
-  type Customer,
+  type Address,
+  validAddress,
   type Order,
   type Product,
 } from "./api";
@@ -16,15 +17,17 @@ type Props = {
   cart: Record<string, number>;
   count: number;
   total: number;
-  customers: Customer[];
-  customerId: string;
+  address: Address;
+  addressLoading: boolean;
+  addressError: string;
+  onAddress: (address: Address) => void;
+  onLookupAddress: () => void;
   fulfillment: "pickup" | "delivery";
   payment: "pix" | "card";
   pending: boolean;
   error: ApiError | null;
   order: Order | null;
   onQuantity: (id: string, quantity: number) => void;
-  onCustomer: (id: string) => void;
   onFulfillment: (value: "pickup" | "delivery") => void;
   onPayment: (value: "pix" | "card") => void;
   onCheckout: () => void;
@@ -40,15 +43,17 @@ export default function CheckoutPanel(props: Props) {
     cart,
     count,
     total,
-    customers,
-    customerId,
+    address,
+    addressLoading,
+    addressError,
+    onAddress,
+    onLookupAddress,
     fulfillment,
     payment,
     pending,
     error,
     order,
     onQuantity,
-    onCustomer,
     onFulfillment,
     onPayment,
     onCheckout,
@@ -58,7 +63,6 @@ export default function CheckoutPanel(props: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const pointerStartedOutside = useRef(false);
-  const customer = customers.find((profile) => profile.id === customerId);
 
   useEffect(() => {
     if (!open) return;
@@ -211,7 +215,7 @@ export default function CheckoutPanel(props: Props) {
                   <div className="receipt-address">
                     <span>Endereço de entrega</span>
                     <strong>
-                      {order.deliveryAddress.street}
+                      {order.deliveryAddress.street}, {order.deliveryAddress.number}
                       <br />
                       {order.deliveryAddress.city} ·{" "}
                       {order.deliveryAddress.postalCode}
@@ -329,34 +333,9 @@ export default function CheckoutPanel(props: Props) {
                     </fieldset>
                   </section>
 
-                  <section
-                    className="checkout-section"
-                    aria-labelledby="customer-title"
-                  >
-                    <div className="checkout-section-title">
-                      <span>02</span>
-                      <h3 id="customer-title">Quem vai receber?</h3>
-                    </div>
-                    <label className="field-label" htmlFor="customer">
-                      Cliente de demonstração
-                    </label>
-                    <select
-                      id="customer"
-                      value={customerId}
-                      disabled={pending}
-                      onChange={(event) => onCustomer(event.target.value)}
-                    >
-                      {customers.map((profile) => (
-                        <option key={profile.id} value={profile.id}>
-                          {profile.name}
-                        </option>
-                      ))}
-                    </select>
-                  </section>
-
                   <fieldset className="checkout-section" disabled={pending}>
                     <legend className="checkout-section-title">
-                      <span>03</span>Como deseja receber?
+                      <span>02</span>Como deseja receber?
                     </legend>
                     <div className="choice-grid">
                       <label className="choice">
@@ -381,38 +360,40 @@ export default function CheckoutPanel(props: Props) {
                         />
                         <Icon name="truck" />
                         <strong>Receber em casa</strong>
-                        <span>No endereço cadastrado</span>
+                        <span>Informe o endereço de entrega</span>
                       </label>
                     </div>
                     {fulfillment === "delivery" && (
-                      <div className="delivery-address">
-                        {customer?.address ? (
-                          <>
-                            <strong>Endereço de entrega</strong>
-                            <p>
-                              {customer.address.street}
-                              <br />
-                              {customer.address.city} ·{" "}
-                              {customer.address.postalCode}
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <strong>Cliente sem endereço cadastrado</strong>
-                            <p>
-                              A entrega depende de um endereço. A
-                              disponibilidade será validada ao finalizar o
-                              pedido.
-                            </p>
-                          </>
-                        )}
+                      <div className="address-form">
+                        <label className="field-label" htmlFor="postal-code">CEP</label>
+                        <div className="postal-code-search">
+                          <input id="postal-code" inputMode="numeric" autoComplete="postal-code" maxLength={9} value={address.postalCode} onChange={(event) => onAddress({ ...address, postalCode: event.target.value })} />
+                          <button className="secondary" type="button" disabled={addressLoading} onClick={onLookupAddress}>
+                            {addressLoading ? "Buscando…" : "Buscar endereço"}
+                          </button>
+                        </div>
+                        {addressLoading && <p role="status">Consultando CEP…</p>}
+                        {addressError && <p role="alert">{addressError}</p>}
+                        {([
+                          ["street", "Rua", "address-line1"],
+                          ["number", "Número", "off"],
+                          ["neighborhood", "Bairro (opcional)", "address-level3"],
+                          ["city", "Cidade", "address-level2"],
+                          ["state", "UF", "address-level1"],
+                          ["complement", "Complemento (opcional)", "address-line2"],
+                        ] as const).map(([field, label, autocomplete]) => (
+                          <label className="address-field" key={field}>
+                            <span className="field-label">{label}</span>
+                            <input autoComplete={autocomplete} maxLength={field === "state" ? 2 : 200} value={address[field]} onChange={(event) => onAddress({ ...address, [field]: event.target.value })} />
+                          </label>
+                        ))}
                       </div>
                     )}
                   </fieldset>
 
                   <fieldset className="checkout-section" disabled={pending}>
                     <legend className="checkout-section-title">
-                      <span>04</span>Pagamento demonstrativo
+                      <span>03</span>Pagamento demonstrativo
                     </legend>
                     <div className="choice-grid">
                       <label className="choice">
@@ -494,7 +475,7 @@ export default function CheckoutPanel(props: Props) {
               </div>
               <button
                 className="primary"
-                disabled={items.length === 0}
+                disabled={items.length === 0 || addressLoading || (fulfillment === "delivery" && !validAddress(address))}
                 onClick={onCheckout}
               >
                 {pending ? (

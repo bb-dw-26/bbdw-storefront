@@ -10,7 +10,6 @@ test("erro de renderização gera um evento e fallback sem dados HTTP", async ({
     }
     await route.fulfill({ status: 200, json: {} });
   });
-  await page.route("http://localhost:3001/**", (route) => route.fulfill({ json: { id: "test", name: "never-publish", address: null } }));
   // Resposta inválida força um erro real no render de App, sem endpoint de debug.
   await page.route("http://localhost:3002/**", (route) => route.fulfill({ json: { items: {} } }));
   await page.goto("/?secret=never-publish");
