@@ -131,8 +131,9 @@ export default function App() {
   }
 
   async function checkout() {
-    if (order || items.length === 0 || addressLoading || (fulfillment === "delivery" && !validAddress(address))) return;
+    if (inFlight.current || order || items.length === 0 || addressLoading || (fulfillment === "delivery" && !validAddress(address))) return;
     purchaseKey.current ??= crypto.randomUUID();
+    inFlight.current = true;
     setPending(true);
     setError(null);
     try {

@@ -86,3 +86,47 @@ test("a mesma compra conserva a chave; endereço, recebimento, quantidade e conc
   keys.forEach((key) => expect(key).toMatch(/^[a-f0-9-]{36}$/));
   expect(new Set(requestIds).size).toBe(requestIds.length);
 });
+
+test("duplo clique em Finalizar compra envia uma única requisição", async ({
+  page,
+}) => {
+  await page.route("https://sentry.invalid/**", (route) =>
+    route.fulfill({ json: {} }),
+  );
+  await page.route("http://localhost:3002/**", (route) =>
+    route.fulfill({
+      json: {
+        items: [
+          {
+            id: "product-standard",
+            name: "Caneca Demo",
+            priceCents: 4000,
+            available: true,
+            thumbnailUrl: null,
+          },
+        ],
+      },
+    }),
+  );
+  let orders = 0;
+  await page.route("http://localhost:3003/orders", async (route) => {
+    orders++;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await route.fulfill({
+      status: 201,
+      json: {
+        id: "single-order",
+        fulfillment: "pickup",
+        deliveryAddress: null,
+        totalCents: 4000,
+      },
+    });
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: /^Carrinho/ }).click();
+  await page.getByRole("button", { name: "Finalizar compra" }).dblclick();
+  await expect(
+    page.getByText("Pedido confirmado!", { exact: true }),
+  ).toBeVisible();
+  expect(orders).toBe(1);
+});
