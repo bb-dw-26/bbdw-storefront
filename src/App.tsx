@@ -269,8 +269,9 @@ export default function App() {
                       </span>
                     </div>
                     <div className="product-details">
-                      <span className="product-label">COLEÇÃO DEMO</span>
+                      <span className="product-label">{product.category ?? "COLEÇÃO DEMO"}</span>
                       <h3 id={`product-${product.id}`}>{product.name}</h3>
+                      {product.description && <p className="product-description">{product.description}</p>}
                       <p className="product-availability">
                         <span
                           className={

@@ -29,6 +29,8 @@ export function validAddress(address: Address) {
 export type Product = {
   id: string;
   name: string;
+  description?: string;
+  category?: string;
   priceCents: number;
   available: boolean;
   thumbnailUrl: string | null;

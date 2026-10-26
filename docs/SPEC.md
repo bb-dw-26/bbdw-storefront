@@ -24,7 +24,7 @@ Tecnologia: React e TypeScript com Vite. Porta local padrão: `3000`. Produtos v
 
 Consumir os contratos dos dois backends por HTTP/JSON, com URLs configuráveis. Os backends devem permitir a origem local configurada via CORS. Exibir moeda BRL em pt-BR; manter centavos inteiros no estado. Manter o carrinho após erro e impedir submissões simultâneas na mesma tela.
 
-Recursos visuais de demonstração são locais. O caminho `/demo-assets/caneca.svg` do catálogo é servido pela interface. Um produto sem miniatura usa placeholder acessível. A interface não substitui as validações do servidor.
+Recursos visuais de demonstração são locais. As fotografias em `/demo-assets/*.png` são servidas pela interface, sem dependência externa. Produtos sem miniatura ou com falha de carregamento usam placeholder acessível. As imagens carregam sob demanda e preservam sua proporção no catálogo e no carrinho. A interface não substitui as validações do servidor.
 
 ### Loja e checkout lateral
 

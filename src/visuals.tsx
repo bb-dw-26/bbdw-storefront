@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Product } from "./api";
 
 export function Icon({
@@ -76,8 +77,18 @@ export function Icon({
 }
 
 export function ProductImage({ product }: { product: Product }) {
-  return product.thumbnailUrl ? (
-    <img src={product.thumbnailUrl} alt={product.name} />
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const source = product.thumbnailUrl;
+  return source && source !== failedUrl ? (
+    <img
+      src={source}
+      alt={product.name}
+      loading="lazy"
+      decoding="async"
+      width={512}
+      height={512}
+      onError={() => setFailedUrl(source)}
+    />
   ) : (
     <span
       className="image-placeholder"
