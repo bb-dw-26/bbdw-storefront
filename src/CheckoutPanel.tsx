@@ -217,7 +217,9 @@ export default function CheckoutPanel(props: Props) {
                     <strong>
                       {order.deliveryAddress.street}, {order.deliveryAddress.number}
                       <br />
-                      {order.deliveryAddress.city} ·{" "}
+                      {order.deliveryAddress.complement && <>{order.deliveryAddress.complement}<br /></>}
+                      {order.deliveryAddress.neighborhood && <>{order.deliveryAddress.neighborhood}<br /></>}
+                      {order.deliveryAddress.city}/{order.deliveryAddress.state} ·{" "}
                       {order.deliveryAddress.postalCode}
                     </strong>
                   </div>

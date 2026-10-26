@@ -5,6 +5,7 @@ test.beforeEach(async ({ page }) => {
   await page.route("http://localhost:3002/**", (route) => route.fulfill({ json: { items: [{ id: "product-standard", name: "Caneca Demo", priceCents: 4000, available: true, thumbnailUrl: null }] } }));
 });
 test("retirada não consulta CEP; entrega preenche, permite edição e preserva rascunho", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   let lookups = 0;
   await page.route("http://localhost:3003/addresses/**", (route) => {
     lookups++;
@@ -21,6 +22,8 @@ test("retirada não consulta CEP; entrega preenche, permite edição e preserva 
   await page.getByLabel("Número", { exact: true }).fill("s/n");
   await page.getByLabel("Rua", { exact: true }).fill("Rua editada");
   await page.getByLabel("Complemento (opcional)").fill("Bloco B");
+  expect(await page.locator(".panel-body").evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await page.screenshot({ path: "test-results/address-form-mobile.png" });
   await page.keyboard.press("Escape"); await page.getByRole("button", { name: /^Carrinho/ }).click();
   await expect(page.getByLabel("Rua", { exact: true })).toHaveValue("Rua editada");
   await page.getByRole("radio", { name: /Retirar na loja/ }).check();
