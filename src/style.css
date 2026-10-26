@@ -152,7 +152,7 @@ fieldset {
 .intro {
   position: relative;
   overflow: hidden;
-  padding: 59px 0 46px;
+  padding: 30px 0 26px;
   border-bottom: 1px solid var(--line);
 }
 .eyebrow {
@@ -174,11 +174,11 @@ fieldset {
   background: #d9b400;
 }
 h1 {
-  font-size: clamp(36px, 4.6vw, 58px);
+  font-size: clamp(30px, 3.5vw, 44px);
   line-height: 1.08;
-  letter-spacing: -2.8px;
+  letter-spacing: -1.8px;
   font-weight: 750;
-  margin: 21px 0;
+  margin: 12px 0;
   position: relative;
   z-index: 1;
 }
@@ -199,13 +199,13 @@ h1 > span::after {
 }
 .intro-copy {
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.8;
+  font-size: 13px;
+  line-height: 1.6;
   position: relative;
   z-index: 1;
 }
 .intro-note {
-  margin-top: 29px;
+  margin-top: 14px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -219,9 +219,9 @@ h1 > span::after {
 .intro-decoration {
   position: absolute;
   right: 30px;
-  top: 99px;
+  top: 56px;
   transform: rotate(-12deg);
-  font-size: 90px;
+  font-size: 68px;
   font-weight: 850;
   letter-spacing: -7px;
   color: #dbe3f4;
@@ -1004,12 +1004,12 @@ select {
     padding: 0 24px;
   }
   .intro {
-    padding-top: 42px;
+    padding-top: 26px;
   }
   .intro-decoration {
     right: 0;
     font-size: 60px;
-    top: 120px;
+    top: 62px;
     opacity: 0.6;
   }
   .product-art {
@@ -1060,16 +1060,16 @@ select {
     padding: 0 18px;
   }
   .intro {
-    padding: 34px 0 29px;
+    padding: 22px 0;
   }
   .intro > .eyebrow {
     font-size: 8px;
     letter-spacing: 1px;
   }
   h1 {
-    font-size: 37px;
-    letter-spacing: -1.8px;
-    margin: 18px 0;
+    font-size: 30px;
+    letter-spacing: -1.3px;
+    margin: 12px 0;
   }
   .intro-copy {
     font-size: 12px;
@@ -1079,7 +1079,7 @@ select {
   }
   .intro-note {
     font-size: 9px;
-    margin-top: 23px;
+    margin-top: 12px;
   }
   .catalog {
     padding-top: 27px;
